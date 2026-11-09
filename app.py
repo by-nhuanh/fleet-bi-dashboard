@@ -3,12 +3,13 @@ import duckdb
 import pandas as pd
 import altair as alt
 import streamlit as st
+from ui import setup, page_header, filter_title, section, metric_card, note
 
 st.set_page_config(
     page_title="Fleet BI | Fleet Operations",
     page_icon="🚚",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 DB_PATH = Path(__file__).resolve().parent / "database" / "fleet_dw.duckdb"
@@ -16,75 +17,9 @@ if not DB_PATH.is_file():
     st.error(f"Không tìm thấy dữ liệu: {DB_PATH}")
     st.stop()
 
-st.markdown("""
-<style>
-:root { color-scheme:light; --ink:#172E40; --muted:#607586; --surface:#fff; --line:#e2eaf0; --teal:#176F76; }
-html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"] {
-  background:#F4F7FA!important; color:#172E40!important; color-scheme:light;
-  font-family: "Inter", "Segoe UI", Arial, sans-serif;
-}
-[data-testid="stHeader"] { background:transparent!important; }
-[data-testid="stToolbar"] { visibility:hidden; }
-.block-container { max-width:1510px; padding:1.1rem 3rem 3.1rem; }
-[data-testid="stSidebar"] { background:#F4F7FA!important; }
-[data-testid="stMain"] p, [data-testid="stMain"] label { color:#172E40; }
-[data-baseweb="select"]>div, [data-baseweb="input"]>div,
-[data-testid="stDateInput"] input {
- background:white!important; color:#172E40!important; border-color:#D9E4EA!important; border-radius:9px!important;
-}
-[data-testid="stExpander"] {
- background:#fff!important; border:1px solid #E2EAF0!important; border-radius:12px!important;
-}
-[data-testid="stExpander"] summary, [data-testid="stExpander"] summary * {color:#254457!important;}
-div[data-testid="stVerticalBlockBorderWrapper"] > div { background:#fff!important; border:1px solid #e2eaf0!important; border-radius:16px!important; }
-[data-testid="stCaptionContainer"] {color:#607586!important;}
-.dashboard-top {
- display:flex; align-items:center; justify-content:space-between;
- padding:1rem 1.3rem; background:#102D40; border-radius:14px;
- color:#fff; margin-bottom:1.55rem;
-}
-.brand {display:flex; align-items:center; gap:.72rem; font-size:1.04rem; font-weight:760; letter-spacing:-.025em; color:#fff;}
-.brand-mark {display:flex; align-items:center; justify-content:center; width:37px;height:37px; border-radius:10px;background:#2B6770;color:#fff;}
-.brand-mark svg {width:23px;height:23px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-.brand-sub {font-weight:450;color:#B7D1D5}
-.top-right {color:#B9D1D7;font-size:.76rem;letter-spacing:.1em;font-weight:650}
-.page-heading {display:flex; align-items:end;justify-content:space-between;gap:1rem;margin:0 0 1.1rem}
-.page-eyebrow {font-size:.75rem;font-weight:780;color:#21767C;letter-spacing:.12em;margin-bottom:.26rem}
-.page-title {color:#172E40;font-size:1.85rem;font-weight:780;letter-spacing:-.045em;line-height:1.25}
-.page-description {color:#6A7C8C;font-size:.84rem;margin-top:.35rem}
-.period-tag {background:#E4EFF0;color:#28666B;padding:.52rem .78rem;border-radius:99px;font-size:.74rem;font-weight:700;white-space:nowrap}
-.filter-head {display:flex;align-items:center;gap:.6rem;color:#304F60;font-size:.82rem;font-weight:730;margin:.2rem 0 .8rem}
-.filter-head svg,.section-icon svg {width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.filter-label {color:#647989;font-size:.72rem;letter-spacing:.055em;text-transform:uppercase;font-weight:720;margin:0 0 .34rem}
-.section-heading {display:flex;align-items:center;justify-content:space-between;margin:1.35rem 0 .72rem}
-.section-heading .section-left {display:flex;align-items:center;gap:.55rem;color:#19384A;font-size:1.03rem;font-weight:760}
-.section-icon {display:flex;align-items:center;justify-content:center;background:#E5EFF1;color:#26727B;border-radius:8px;width:30px;height:30px}
-.section-hint {color:#8496A3;font-size:.74rem}
-.kpi-card {
- background:white;border:1px solid #e2eaf0;border-radius:16px;padding:1.1rem 1.15rem 1.05rem;
- min-height:156px; box-shadow:0 5px 19px rgba(30,65,90,.035);
- position:relative;overflow:hidden
-}
-.kpi-card:before {content:"";position:absolute;left:0;top:0;height:100%;width:3px;background:var(--accent)}
-.kpi-head {display:flex;justify-content:space-between;align-items:center;gap:.4rem}
-.kpi-label {color:#667B8C;font-weight:650;font-size:.8rem}
-.kpi-icon {display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;background:var(--tint);color:var(--accent)}
-.kpi-icon svg {width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.kpi-value {color:#172F40;font-weight:790;font-size:clamp(1.3rem,2.1vw,2rem);letter-spacing:-.055em;margin:.62rem 0 .26rem;white-space:nowrap}
-.kpi-foot {color:#8999A7;font-size:.735rem;line-height:1.45}
-.chart-title {color:#1D394A;font-size:.94rem;font-weight:730}
-.chart-subtitle {color:#8495A1;font-size:.76rem;margin:.22rem 0 .5rem}
-.data-note {background:#EEF5F5;border-left:3px solid #3E9694;border-radius:0 10px 10px 0;padding:.75rem .95rem;color:#456775;font-size:.77rem;line-height:1.65;margin:1rem 0}
-.footer-line {color:#95A5B0;font-size:.72rem;text-align:center;padding:1.2rem 0 .2rem}
-@media(max-width:820px) {
- .block-container {padding:1rem 1.1rem 2rem}
- .page-title{font-size:1.52rem}
- .top-right,.period-tag,.section-hint{display:none}
- .kpi-card{min-height:135px;padding:.95rem}
- .kpi-value{font-size:1.5rem}
-}
-</style>
-""", unsafe_allow_html=True)
+setup(10)
+
+
 
 @st.cache_resource
 def connect_db():
@@ -118,32 +53,9 @@ if bounds[0] is None or bounds[1] is None:
     st.warning("Không có chuyến đi trong dữ liệu.")
     st.stop()
 
-st.markdown("""
-<div class="dashboard-top">
-  <div class="brand">
-    <span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z"/><circle cx="7.5" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/><path d="M6 7V5h5"/></svg></span>
-    <span>FLEET <span class="brand-sub">/ INTELLIGENCE</span></span>
-  </div>
-  <div class="top-right">OPERATIONS ANALYTICS &nbsp; / &nbsp; 01</div>
-</div>
-<div class="page-heading">
-  <div><div class="page-eyebrow">FLEET OPERATIONS</div>
-  <div class="page-title">Tổng quan vận hành</div>
-  <div class="page-description">Hiệu suất chuyến đi, tỷ lệ trễ và chi phí nhiên liệu trên dữ liệu DDS.</div></div>
-  <span class="period-tag">DỮ LIỆU THỰC TẾ · 2022–2024</span>
-</div>
-<div class="filter-head"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Bộ lọc dữ liệu</div>
-""", unsafe_allow_html=True)
-
-
-# Navigation between deliverables (visible even when the Streamlit sidebar is collapsed).
-nav1,nav2,nav3=st.columns(3)
-with nav1:
-    st.page_link("app.py",label="01 · Tổng quan vận hành",use_container_width=True)
-with nav2:
-    st.page_link("pages/2_Route_GIS.py",label="02 · GIS & tuyến đường",use_container_width=True)
-with nav3:
-    st.page_link("pages/3_Fuel_Analytics.py",label="03 · Phân tích nhiên liệu",use_container_width=True)
+page_header(10, "Tổng quan vận hành",
+    "Tổng hợp chuyến đi, tỷ lệ giao hàng trễ và chi phí mua nhiên liệu từ DDS.")
+filter_title()
 
 facility_types = sorted(locations["facility_type"].dropna().unique().tolist())
 location_options = {
@@ -266,42 +178,22 @@ late = int(kpi["late_trips"])
 fuel = float(kpi["fuel_cost_usd"])
 late_pct = 100 * late / eligible if eligible else None
 
-ICONS = {
-    "route": '<path d="M5 5h.01M19 19h.01"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h8a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h8"/>',
-    "clock": '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
-    "fuel": '<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M3 21h14M7 7h6v5H7z"/><path d="M16 9h2l3 4v5a2 2 0 0 1-4 0v-3"/>',
-    "check": '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
-    "chart": '<path d="M4 19V5M4 19h16M8 15l4-5 4 3 4-7"/>',
-}
-
-def section(title, icon="chart", hint=""):
-    st.markdown(
-        '<div class="section-heading"><div class="section-left">'
-        '<span class="section-icon"><svg viewBox="0 0 24 24">' + ICONS[icon] + '</svg></span>'
-        + title + '</div><span class="section-hint">' + hint + '</span></div>',
-        unsafe_allow_html=True,
-    )
-
-def metric_card(label, value, detail, icon, accent, tint):
-    st.markdown(
-        f'<div class="kpi-card" style="--accent:{accent};--tint:{tint}">'
-        f'<div class="kpi-head"><span class="kpi-label">{label}</span>'
-        f'<span class="kpi-icon"><svg viewBox="0 0 24 24">{ICONS[icon]}</svg></span></div>'
-        f'<div class="kpi-value">{value}</div><div class="kpi-foot">{detail}</div></div>',
-        unsafe_allow_html=True,
-    )
-
-section("Chỉ số cốt lõi", hint="TỔNG HỢP THEO BỘ LỌC ĐANG CHỌN")
+section("Chỉ số vận hành", "TOÀN BỘ CHỈ SỐ LẤY TỪ DUCKDB")
 cards = st.columns(4, gap="medium")
 with cards[0]:
-    metric_card("Tổng chuyến đi", f"{total:,}", "Tổng số chuyến đã ghi nhận", "route", "#347F96", "#E6F3F6")
+    metric_card("Tổng số chuyến", f"{total:,}",
+                "Số chuyến trong bộ lọc", "truck", "#287CF0", "#E7F1FF")
 with cards[1]:
-    metric_card("Tỷ lệ giao trễ", f"{late_pct:.2f}%" if late_pct is not None else "N/A",
-                f"{late:,} chuyến trễ / {eligible:,} chuyến hợp lệ", "clock", "#BE8056", "#FBF1E8")
+    metric_card("Tỷ lệ giao hàng trễ",
+                f"{late_pct:.2f}%" if late_pct is not None else "N/A",
+                f"{late:,} chuyến trễ / {eligible:,} chuyến đủ điều kiện",
+                "alert", "#C87C56", "#FCEDF0")
 with cards[2]:
-    metric_card("Chi phí nhiên liệu", f"${fuel:,.2f}", "USD · Chi phí mua theo chuyến", "fuel", "#308D80", "#E3F3EF")
+    metric_card("Chi phí mua nhiên liệu", f"${fuel:,.2f}",
+                "USD · Theo chuyến liên kết", "fuel", "#23936F", "#E5F7EE")
 with cards[3]:
-    metric_card("Chuyến hợp lệ KPI", f"{eligible:,}", "Mẫu số của tỷ lệ giao trễ", "check", "#637EA3", "#EDF1F7")
+    metric_card("Chuyến đủ điều kiện KPI", f"{eligible:,}",
+                "Mẫu số tính tỷ lệ giao hàng trễ", "check", "#7467B6", "#F0EDFB")
 
 if monthly.empty:
     st.warning("Không có chuyến nào phù hợp bộ lọc hiện tại.")
@@ -378,24 +270,18 @@ section("Xu hướng vận hành", hint="THỐNG KÊ THEO THÁNG")
 left, right = st.columns(2, gap="medium")
 with left:
     with st.container(border=True):
-        st.markdown('<div class="chart-title">Số chuyến theo tháng</div><div class="chart-subtitle">Phân bố tổng chuyến theo thời điểm khởi hành</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-heading">Số chuyến theo tháng</div><div class="chart-subtitle">Phân bố tổng chuyến theo thời điểm khởi hành</div>', unsafe_allow_html=True)
         st.altair_chart(trips_chart.properties(height=280), use_container_width=True, theme=None)
 with right:
     with st.container(border=True):
-        st.markdown('<div class="chart-title">Tỷ lệ giao hàng trễ</div><div class="chart-subtitle">Tỷ lệ trên các chuyến đủ điều kiện KPI</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-heading">Tỷ lệ giao hàng trễ</div><div class="chart-subtitle">Tỷ lệ trên các chuyến đủ điều kiện KPI</div>', unsafe_allow_html=True)
         st.altair_chart(late_chart.properties(height=280), use_container_width=True, theme=None)
 
 with st.container(border=True):
-    st.markdown('<div class="chart-title">Chi phí mua nhiên liệu theo tháng</div><div class="chart-subtitle">Gắn chi phí mua nhiên liệu với ngày bắt đầu của chuyến liên kết</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-heading">Chi phí mua nhiên liệu theo tháng</div><div class="chart-subtitle">Gắn chi phí mua nhiên liệu với ngày bắt đầu của chuyến liên kết</div>', unsafe_allow_html=True)
     st.altair_chart(fuel_chart.properties(height=250), use_container_width=True, theme=None)
 
-st.markdown(
-    '<div class="data-note"><b>Quy ước dữ liệu:</b> Lọc theo ngày bắt đầu chuyến; '
-    'giao trễ khi chuyến đủ điều kiện và delay_minutes &gt; 0. '
-    'Chi phí nhiên liệu tính từ giao dịch mua liên kết với chuyến, '
-    'không theo ngày mua nhiên liệu. Không sử dụng số liệu minh họa.</div>',
-    unsafe_allow_html=True,
-)
+note("Lọc theo ngày bắt đầu chuyến; giao trễ khi chuyến đủ điều kiện và delay_minutes > 0. Chi phí mua nhiên liệu được gắn theo chuyến liên kết, không theo ngày giao dịch mua.")
 
 with st.expander("Bảng dữ liệu đối soát theo tháng"):
     display = monthly[[
@@ -411,4 +297,4 @@ with st.expander("Bảng dữ liệu đối soát theo tháng"):
     })
     st.dataframe(display, use_container_width=True, hide_index=True)
 
-st.markdown('<div class="footer-line">FLEET BI &nbsp; · &nbsp; OPERATIONS OVERVIEW &nbsp; · &nbsp; DDS WAREHOUSE</div>', unsafe_allow_html=True)
+
