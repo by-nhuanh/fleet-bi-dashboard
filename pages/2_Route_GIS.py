@@ -6,7 +6,7 @@ import pydeck as pdk
 import streamlit as st
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ui import setup, page_header, filter_title, section, metric_card, note
+from ui import setup, page_header, filter_title, section, metric_card, metric_grid, note
 
 st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", layout="wide", initial_sidebar_state="expanded")
 
@@ -99,16 +99,14 @@ except Exception as exc:
     st.stop()
 
 section("Tổng quan dữ liệu GPS", "PHẠM VI CHUYẾN CÓ DỮ LIỆU GPS")
-a,b,c=st.columns(3, gap="large")
-with a:
-    metric_card("Tổng số điểm GPS",f"{gps_count:,}",
-                "Tổng điểm quan sát", "location", "#287CF0", "#E7F1FF")
-with b:
-    metric_card("Số chuyến có dữ liệu GPS",f"{trip_count:,}",
-                "Chuyến được quan sát trong DDS", "truck", "#23936F", "#E5F7EE")
-with c:
-    metric_card("Điểm ghi nhận vận tốc thấp",f"{low_count:,}",
-                f"Vận tốc từ 0 đến {threshold} km/h", "clock", "#C87C56", "#FCEDF0")
+metric_grid([
+    metric_card("Tổng số điểm GPS", f"{gps_count:,}",
+                "Điểm GPS trong phạm vi đã chọn", "location", render=False),
+    metric_card("Số chuyến có dữ liệu GPS", f"{trip_count:,}",
+                "Số chuyến có vị trí được ghi nhận", "truck", render=False),
+    metric_card("Điểm ghi nhận vận tốc thấp", f"{low_count:,}",
+                f"Vận tốc từ 0 đến {threshold} km/h", "clock", render=False),
+], columns=3)
 
 section("Bản đồ phân bố điểm vận tốc thấp", "VỊ TRÍ GHI NHẬN")
 if spots.empty:
