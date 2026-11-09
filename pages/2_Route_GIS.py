@@ -4,39 +4,18 @@ import pandas as pd
 import altair as alt
 import pydeck as pdk
 import streamlit as st
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from ui import setup, page_header, filter_title, section, metric_card, note
 
-st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", layout="wide")
+st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", layout="wide", initial_sidebar_state="expanded")
 
 DB = Path(__file__).resolve().parents[1] / "database" / "fleet_analysis.duckdb"
 if not DB.exists():
     st.error("Chưa có database Task 11–12: database/fleet_analysis.duckdb. Cần tải bản xuất từ DDS lên GitHub.")
     st.stop()
 
-st.markdown("""
-<style>
-html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#F4F7FA!important;color:#172E40!important;color-scheme:light}
-.block-container{max-width:1490px;padding-top:1.45rem}
-[data-testid="stVerticalBlockBorderWrapper"]>div{border-radius:14px!important;border-color:#E2EAF0!important;background:#fff!important}
-[data-testid="stSidebar"]{background:#F4F7FA!important}
-.hd{background:#102D40;color:#fff;border-radius:13px;padding:1.1rem 1.4rem;margin-bottom:1.2rem}
-.hd strong{color:white;font-size:1.15rem}.hd small{color:#C4D8DC}
-.subtle{color:#62798A;font-size:.86rem}
-.sec{font-size:1.16rem;color:#193748;font-weight:760;margin:1.5rem 0 .5rem}
-.note{background:#E8F1F2;padding:.85rem 1rem;border-left:3px solid #3F9696;color:#375F70;border-radius:0 9px 9px 0}
-</style>
-<div class="hd"><strong>FLEET BI &nbsp; / &nbsp; Route Intelligence</strong>
-<small style="float:right">TASK 11 · GIS DASHBOARD</small></div>
-""",unsafe_allow_html=True)
-
-
-# Navigation between deliverables (visible even when the Streamlit sidebar is collapsed).
-nav1,nav2,nav3=st.columns(3)
-with nav1:
-    st.page_link("app.py",label="01 · Tổng quan vận hành",use_container_width=True)
-with nav2:
-    st.page_link("pages/2_Route_GIS.py",label="02 · GIS & tuyến đường",use_container_width=True)
-with nav3:
-    st.page_link("pages/3_Fuel_Analytics.py",label="03 · Phân tích nhiên liệu",use_container_width=True)
+setup(11)
 
 @st.cache_resource
 def connect():
@@ -57,8 +36,9 @@ def lookups():
     return dates,routes
 
 bounds,routes=lookups()
-st.title("Phân tích tuyến đường & điểm nghẽn")
-st.caption("Bản đồ GPS, vùng vận tốc thấp và hiệu suất tuyến đường · dữ liệu DDS thực tế")
+page_header(11, "Phân tích tuyến đường & điểm nghẽn",
+    "Bản đồ GPS, vùng vận tốc thấp và hiệu suất tuyến đường dựa trên dữ liệu DDS.")
+filter_title()
 
 if bounds[0] is None:
     st.warning("Không tìm thấy bản ghi GPS.")
@@ -118,12 +98,19 @@ except Exception as exc:
     st.exception(exc)
     st.stop()
 
-a,b,c=st.columns(3)
-a.metric("Điểm GPS trong bộ lọc",f"{gps_count:,}")
-b.metric("Chuyến có GPS",f"{trip_count:,}")
-c.metric("Điểm vận tốc thấp",f"{low_count:,}")
+section("Chỉ số GPS", "PHẠM VI CHUYẾN CÓ DỮ LIỆU GPS")
+a,b,c=st.columns(3, gap="medium")
+with a:
+    metric_card("Điểm GPS trong bộ lọc",f"{gps_count:,}",
+                "Tổng điểm quan sát", "location", "#287CF0", "#E7F1FF")
+with b:
+    metric_card("Chuyến có GPS",f"{trip_count:,}",
+                "Chuyến được quan sát trong DDS", "truck", "#23936F", "#E5F7EE")
+with c:
+    metric_card("Điểm vận tốc thấp",f"{low_count:,}",
+                f"Vận tốc từ 0 đến {threshold} km/h", "clock", "#C87C56", "#FCEDF0")
 
-st.markdown('<div class="sec">Bản đồ mật độ điểm vận tốc thấp</div>',unsafe_allow_html=True)
+section("Bản đồ nhiệt · Điểm vận tốc thấp", "BẢN ĐỒ GPS")
 if spots.empty:
     st.info("Không có điểm GPS phù hợp ngưỡng vận tốc.")
 else:
@@ -170,7 +157,7 @@ def gps_trip_choices(start,end,route_value):
     sql+=" ORDER BY g.trip_id LIMIT 1000"
     return con.execute(sql,values).df()["trip_id"].tolist()
 
-st.markdown('<div class="sec">Điểm GPS theo hành trình của một chuyến</div>',unsafe_allow_html=True)
+section("Khám phá hành trình theo chuyến", "ĐIỂM GPS QUAN SÁT")
 available_trips=gps_trip_choices(dates[0],dates[1],route)
 if not available_trips:
     st.info("Không có chuyến GPS trong khoảng thời gian và tuyến đang chọn.")
@@ -246,7 +233,7 @@ def route_performance(start,end,route_value):
     return df
 
 routes_df=route_performance(dates[0],dates[1],route)
-st.markdown('<div class="sec">Hiệu suất tuyến đường theo chuyến</div>',unsafe_allow_html=True)
+section("Hiệu suất tuyến đường", "SO SÁNH THEO TUYẾN")
 if routes_df.empty:
     st.info("Không có chuyến thuộc bộ lọc.")
 else:
@@ -277,10 +264,4 @@ else:
             })
             st.dataframe(display,use_container_width=True,hide_index=True,height=390)
 
-st.markdown("""
-<div class="note">
-<b>Diễn giải vận hành:</b> Điểm vận tốc thấp tại gần cơ sở có thể liên quan hoạt động
-bốc dỡ hoặc dừng chờ; điểm trên đường chỉ là vị trí cần kiểm tra thêm.
-Không suy ra ùn tắc giao thông khi thiếu dữ liệu giao thông thực tế.
-</div>
-""",unsafe_allow_html=True)
+note("Điểm GPS có vận tốc thấp gần cơ sở có thể liên quan hoạt động bốc dỡ hoặc dừng chờ. Điểm chậm trên đường là tín hiệu cần kiểm tra, không chứng minh ùn tắc giao thông.")
