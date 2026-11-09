@@ -44,6 +44,7 @@ if bounds[0] is None:
     st.stop()
 
 with st.container(border=False, key="filter_bar"):
+    filter_title()
     col1,col2,col3=st.columns([1.5,1,1])
     with col1:
         dates=st.date_input("Khoảng ngày GPS",value=(bounds[0],bounds[1]),
