@@ -171,6 +171,32 @@ div[class*="st-key-browser_tabs"] [data-testid="stButton"] button:focus-visible{
  .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:1fr;gap:12px}
  .kpi-card{min-height:116px}
 }
+
+/* Chart card surface: style the keyed container AND the actual outer Streamlit wrapper.
+   Avoid relying on the Altair canvas, which only paints the plot rectangle. */
+[data-testid="stMain"] div[class*="st-key-chart_panel"],
+[data-testid="stMain"] div[class*="st-key-chart_panel"] > div,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]),
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]) > div,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]) [data-testid="stVerticalBlock"] {
+ background-color:#FFFFFF!important;
+ background:#FFFFFF!important;
+ background-image:none!important;
+}
+[data-testid="stMain"] div[class*="st-key-chart_panel"] {
+ border:1px solid #DFE7F0!important;
+ border-radius:14px!important;
+ padding:15px 17px!important;
+ box-sizing:border-box!important;
+ overflow:hidden!important;
+ box-shadow:0 2px 10px rgba(27,59,90,.025)!important;
+}
+[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"],
+[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"] > div,
+[data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed,
+[data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed > div {
+ background-color:#FFFFFF!important;
+}
 </style>
 """
 ICONS = {
