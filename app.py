@@ -141,7 +141,7 @@ location_options = {
     for r in locations.itertuples()
 }
 
-filter_cols = st.columns([1.45, 1, 1.1], gap="medium")
+filter_cols = st.columns([1.45, 1.45, 1], gap="medium")
 with filter_cols[0]:
     st.markdown('<div class="filter-label">Khoảng ngày bắt đầu chuyến</div>', unsafe_allow_html=True)
     date_range = st.date_input(
@@ -152,10 +152,10 @@ with filter_cols[0]:
         label_visibility="collapsed",
     )
 with filter_cols[1]:
-    st.markdown('<div class="filter-label">Loại cơ sở xuất phát</div>', unsafe_allow_html=True)
-    selected_types = st.multiselect(
-        "Loại cơ sở xuất phát",
-        facility_types,
+    st.markdown('<div class="filter-label">Chi nhánh / cơ sở xuất phát</div>', unsafe_allow_html=True)
+    origin_labels = st.multiselect(
+        "Chi nhánh / cơ sở xuất phát",
+        list(location_options),
         placeholder="Tất cả cơ sở",
         label_visibility="collapsed",
     )
@@ -168,13 +168,13 @@ with filter_cols[2]:
         label_visibility="collapsed",
     )
 
-with st.expander("Bộ lọc nâng cao · Địa điểm xuất phát và điểm đến", expanded=False):
+with st.expander("Bộ lọc nâng cao · Loại cơ sở và địa điểm đến", expanded=False):
     loc_left, loc_right = st.columns(2)
     with loc_left:
-        origin_labels = st.multiselect(
-            "Địa điểm xuất phát",
-            list(location_options),
-            placeholder="Tất cả điểm xuất phát",
+        selected_types = st.multiselect(
+            "Loại cơ sở xuất phát",
+            facility_types,
+            placeholder="Tất cả loại cơ sở",
         )
     with loc_right:
         destination_labels = st.multiselect(
@@ -182,6 +182,8 @@ with st.expander("Bộ lọc nâng cao · Địa điểm xuất phát và điể
             list(location_options),
             placeholder="Tất cả điểm đến",
         )
+
+st.caption("Quy ước bộ lọc: cơ sở xuất phát được dùng để phân nhóm như chi nhánh vận hành; dữ liệu nguồn chưa có trường chi nhánh độc lập.")
 
 if len(date_range) != 2:
     st.info("Chọn đủ ngày bắt đầu và ngày kết thúc để xem Dashboard.")
