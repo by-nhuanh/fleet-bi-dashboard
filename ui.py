@@ -173,6 +173,84 @@ section[data-testid="stSidebar"] [data-testid="stButton"] button:hover{backgroun
 [data-testid="stSidebar"] button[kind="secondary"]:hover{background:#317EC0!important}
 
 
+
+/* Approved sidebar layout overrides: avoid Streamlit's default oversized controls */
+section[data-testid="stSidebar"]{
+ background:linear-gradient(157deg,#0B2540,#0D315B 72%,#133D6B)!important;
+ width:290px!important;min-width:290px!important;max-width:290px!important;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+ padding:13px 17px 19px!important;
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{gap:8px!important}
+section[data-testid="stSidebar"] .nav-brand{
+ display:flex!important;align-items:center!important;gap:12px!important;
+ padding:13px 0 14px!important;min-width:0!important;
+}
+section[data-testid="stSidebar"] .nav-brand-icon{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ height:46px!important;width:46px!important;flex:0 0 46px!important;
+ border-radius:12px!important;background:#247DDD!important;
+}
+section[data-testid="stSidebar"] .nav-brand-copy{
+ display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;
+}
+section[data-testid="stSidebar"] .nav-brand-text{
+ color:#FFFFFF!important;font-size:.98rem!important;white-space:nowrap!important;
+ line-height:1.28!important;font-weight:780!important;
+}
+section[data-testid="stSidebar"] .nav-brand-sub{
+ color:#C8DCED!important;font-size:.73rem!important;font-weight:450!important;white-space:nowrap!important;
+}
+.nav-rule{height:1px;background:rgba(199,222,241,.22);margin:3px 0 14px}
+section[data-testid="stSidebar"] .nav-label{
+ margin:0 9px 6px!important;color:#B8D0E6!important;font-size:.65rem!important;letter-spacing:.12em!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"]{
+ display:flex!important;justify-content:flex-end!important;margin:0 0 2px!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"] button{
+ width:40px!important;min-width:40px!important;max-width:40px!important;
+ height:37px!important;min-height:37px!important;border-radius:10px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ background:#1E466C!important;border:1px solid rgba(204,226,245,.16)!important;
+ box-shadow:none!important;padding:0!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"] button p{
+ font-size:0!important;width:0!important;overflow:hidden!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"] button [data-testid="stIconMaterial"]{
+ font-size:25px!important;color:#E5F3FF!important;line-height:1!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:100%!important;min-height:49px!important;height:49px!important;
+ gap:13px!important;padding:10px 13px!important;margin:0!important;
+ border:1px solid transparent!important;border-radius:11px!important;
+ box-shadow:none!important;background:transparent!important;color:#EFF7FF!important;
+ font-weight:600!important;font-size:.89rem!important;text-align:left!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button[kind="primary"]{
+ background:linear-gradient(105deg,#2679D5,#1E64AF)!important;
+ color:#FFFFFF!important;border-color:rgba(144,198,249,.25)!important;font-weight:750!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button:hover{
+ background:#24547F!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button [data-testid="stIconMaterial"]{
+ font-size:24px!important;color:inherit!important;line-height:1!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button p{
+ font-size:.89rem!important;color:inherit!important;line-height:1.2!important;margin:0!important;
+}
+section[data-testid="stSidebar"] .nav-footer{
+ margin-top:clamp(160px,25vh,370px)!important;border-top:1px solid rgba(204,230,248,.2)!important;
+ padding:17px 7px 5px!important;color:#EAF5FF!important;
+ font-size:.74rem!important;line-height:1.7!important;
+}
+section[data-testid="stSidebar"] .nav-footer-sub{
+ color:#C7D9EA!important;font-size:.71rem!important;
+}
 </style>
 """
 
@@ -192,100 +270,81 @@ def icon_svg(name):
 
 
 def setup(page):
-    """Compact, top-aligned navigation shared by all dashboard pages."""
+    """Approved navigation: top toggle, active menu, compact icon mode."""
     st.markdown(STYLES, unsafe_allow_html=True)
     if "navigation_compact" not in st.session_state:
         st.session_state.navigation_compact = False
     compact = st.session_state.navigation_compact
-
+    entries = [
+        ("app.py", "Tổng quan vận hành", ":material/dashboard:", 10),
+        ("pages/2_Route_GIS.py", "Phân tích tuyến đường", ":material/map:", 11),
+        ("pages/3_Fuel_Analytics.py", "Phân tích nhiên liệu", ":material/local_gas_station:", 12),
+    ]
     with st.sidebar:
+        if st.button(" ", icon=":material/keyboard_double_arrow_right:" if compact
+                     else ":material/keyboard_double_arrow_left:",
+                     key="nav_toggle", help="Mở rộng menu" if compact else "Thu gọn menu"):
+            st.session_state.navigation_compact = not compact
+            st.rerun()
+
         if compact:
-            st.markdown(
-                '<div class="nav-brand nav-brand-compact"><span class="nav-brand-icon">'
-                + icon_svg("truck") + '</span></div>',
-                unsafe_allow_html=True,
-            )
-            if st.button(" ", icon=":material/chevron_right:", help="Mở rộng menu",
-                         key="toggle_navigation", use_container_width=True):
-                st.session_state.navigation_compact = False
-                st.rerun()
-            entries = [
-                ("app.py", "Tổng quan vận hành", ":material/dashboard:", 10),
-                ("pages/2_Route_GIS.py", "Phân tích tuyến đường", ":material/map:", 11),
-                ("pages/3_Fuel_Analytics.py", "Phân tích nhiên liệu", ":material/local_gas_station:", 12),
-            ]
-            for path, title, icon, code in entries:
-                if st.button(
-                    " ", icon=icon, key=f"nav_compact_{code}", help=title,
-                    type="primary" if page == code else "secondary",
-                    use_container_width=True,
-                ):
-                    st.switch_page(path)
+            st.markdown('<div class="nav-brand compact-brand"><span class="nav-brand-icon">'
+                        + icon_svg("truck") + '</span></div>', unsafe_allow_html=True)
         else:
-            head, toggle = st.columns([5, 1], vertical_alignment="center", gap="small")
-            with head:
-                st.markdown(
-                    '<div class="nav-brand"><span class="nav-brand-icon">'
-                    + icon_svg("truck")
-                    + '</span><span class="nav-brand-copy">'
-                    '<span class="nav-brand-text">Fleet BI</span>'
-                    '<span class="nav-brand-sub">Vận hành đội xe</span></span></div>',
-                    unsafe_allow_html=True,
-                )
-            with toggle:
-                if st.button(" ", icon=":material/chevron_left:", help="Thu gọn menu",
-                             key="toggle_navigation", use_container_width=True):
-                    st.session_state.navigation_compact = True
-                    st.rerun()
-
-            st.markdown('<div class="nav-label">DANH MỤC PHÂN TÍCH</div>', unsafe_allow_html=True)
-            st.page_link("app.py", label="Tổng quan vận hành",
-                         icon=":material/dashboard:", use_container_width=True)
-            st.page_link("pages/2_Route_GIS.py", label="Phân tích tuyến đường",
-                         icon=":material/map:", use_container_width=True)
-            st.page_link("pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu",
-                         icon=":material/local_gas_station:", use_container_width=True)
             st.markdown(
-                '<div class="nav-divider"></div>'
-                '<div class="nav-bottom">Nguồn dữ liệu: DuckDB'
-                '<div>Dữ liệu vận hành lịch sử</div></div>',
+                '<div class="nav-brand"><span class="nav-brand-icon">' + icon_svg("truck")
+                + '</span><span class="nav-brand-copy"><strong class="nav-brand-text">'
+                'Fleet BI Dashboard</strong><span class="nav-brand-sub">'
+                'Phân tích vận hành đội xe</span></span></div>'
+                '<div class="nav-rule"></div><div class="nav-label">DANH MỤC PHÂN TÍCH</div>',
                 unsafe_allow_html=True,
             )
 
+        for destination, title, icon, code in entries:
+            if st.button(" " if compact else title, icon=icon,
+                         key=f"nav_item_{code}", help=title if compact else None,
+                         type="primary" if page == code else "secondary",
+                         use_container_width=True):
+                st.switch_page(destination)
+
+        if compact:
+            st.markdown('<div class="nav-footer compact-footer" title="Nguồn dữ liệu: DDS / DuckDB">ⓘ</div>',
+                        unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="nav-footer">ⓘ &nbsp; Nguồn dữ liệu: DDS / DuckDB'
+                        '<div class="nav-footer-sub">Không phải dữ liệu thời gian thực</div>'
+                        '</div>', unsafe_allow_html=True)
     if compact:
         st.markdown("""<style>
-        section[data-testid="stSidebar"]{
-          width:74px!important;min-width:74px!important;max-width:74px!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
-          width:74px!important;min-width:74px!important;padding:12px 9px!important;
-        }
-        section[data-testid="stSidebar"] .nav-brand-compact{
-          justify-content:center!important;padding:5px 0 9px!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button{
-          width:52px!important;min-width:52px!important;max-width:52px!important;
-          height:44px!important;min-height:44px!important;
-          display:flex!important;align-items:center!important;justify-content:center!important;
-          padding:0!important;margin:0 auto!important;border:0!important;
-          border-radius:10px!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button p{
-          font-size:0!important;width:0!important;overflow:hidden!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button [data-testid="stIconMaterial"]{
-          font-size:23px!important;color:#EAF4FF!important;line-height:1!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"]{
-          background:#2576C5!important;color:white!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="secondary"]{
-          background:transparent!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button:hover{
-          background:#285373!important;
-        }
-        </style>""",unsafe_allow_html=True)
+section[data-testid="stSidebar"]{
+ width:80px!important;min-width:80px!important;max-width:80px!important;
+}
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+ width:80px!important;min-width:80px!important;padding:12px 10px 16px!important;
+}
+section[data-testid="stSidebar"] .compact-brand{
+ justify-content:center!important;padding:4px 0 12px!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"]{
+ justify-content:center!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_toggle"] button{
+ width:51px!important;min-width:51px!important;max-width:51px!important;
+ height:45px!important;min-height:45px!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button{
+ width:54px!important;min-width:54px!important;max-width:54px!important;
+ height:50px!important;min-height:50px!important;justify-content:center!important;
+ padding:0!important;
+}
+section[data-testid="stSidebar"] [class*="st-key-nav_item_"] button p{
+ display:none!important;
+}
+section[data-testid="stSidebar"] .compact-footer{
+ text-align:center!important;font-size:1.3rem!important;padding:17px 0 0!important;
+ margin-top:clamp(150px,24vh,370px)!important;
+}
+</style>""",unsafe_allow_html=True)
 
 
 def page_header(number, title, subtitle, badge="DỮ LIỆU LỊCH SỬ"):
