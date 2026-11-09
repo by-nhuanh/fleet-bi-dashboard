@@ -226,6 +226,25 @@ div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"
 .insight-strip{background:#FFFFFF;border:1px solid #DCE5ED;border-left:4px solid var(--page-accent);
  border-radius:10px;padding:12px 17px;margin:12px 0;color:#203A4E;font-size:.82rem}
 .insight-strip strong{color:var(--page-accent)}
+
+/* Neutral card edges — color belongs to charts and icons, not card borders. */
+.dashboard-title-area{border-left:0!important;padding-left:0!important}
+.dashboard-chip{border-color:#DDE6EF!important}
+.panel-heading-title:before{display:none!important}
+.note-panel,.insight-strip{
+ border:1px solid #DFE7F0!important;
+ border-left:1px solid #DFE7F0!important;
+ border-radius:10px!important;
+}
+.kpi-card,[data-testid="stMain"] div[class*="st-key-chart_panel"],
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]{
+ border-color:#DFE7F0!important;
+}
+div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"]{
+ border-color:#DDE6EF!important;
+ border-bottom-color:#FFFFFF!important;
+ box-shadow:none!important;
+}
 </style>
 """
 ICONS = {
