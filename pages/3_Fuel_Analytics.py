@@ -5,7 +5,7 @@ import altair as alt
 import streamlit as st
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ui import setup, page_header, filter_title, section, metric_card, note
+from ui import setup, page_header, filter_title, section, metric_card, metric_grid, note
 
 st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide",initial_sidebar_state="expanded")
 DB=Path(__file__).resolve().parents[1]/"database"/"fleet_analysis.duckdb"
@@ -44,16 +44,16 @@ page_header(12, "Phân tích nhiên liệu",
     "Theo dõi mức nhiên liệu, vận tốc, trạng thái động cơ và các dấu hiệu cần xác minh.")
 
 section("Tổng quan dữ liệu cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
-a,b,c=st.columns(3, gap="large")
-with a:
-    metric_card("Chuyến có dữ liệu GPS",f"{len(options):,}",
-                "Chuyến có bản ghi cảm biến", "truck", "#287CF0", "#E7F1FF")
-with b:
-    metric_card("Chuyến có cảnh báo cần xác minh",f"{(options.flagged_points>0).sum():,}",
-                "Các chuyến có tín hiệu cần rà soát", "alert", "#C87C56", "#FCEDF0")
-with c:
-    metric_card("Điểm GPS mang nhãn cảnh báo",f"{options.flagged_points.sum():,}",
-                "Số điểm có nhãn cần theo dõi", "location", "#7467B6", "#F0EDFB")
+metric_grid([
+    metric_card("Chuyến có dữ liệu GPS", f"{len(options):,}",
+                "Chuyến có bản ghi cảm biến", "truck", render=False),
+    metric_card("Chuyến có cảnh báo cần xác minh",
+                f"{(options.flagged_points>0).sum():,}",
+                "Các chuyến có tín hiệu cần rà soát", "alert", render=False),
+    metric_card("Điểm GPS mang nhãn cảnh báo",
+                f"{options.flagged_points.sum():,}",
+                "Số điểm có nhãn cần theo dõi", "location", render=False),
+], columns=3)
 
 @st.cache_data(ttl=600)
 def get_labels():
