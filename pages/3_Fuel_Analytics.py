@@ -205,6 +205,79 @@ with st.container(border=False, key="chart_panel_engine"):
     ).configure_axis(labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2")
     st.altair_chart(engine_chart,use_container_width=True,theme=None)
 
+# A single aligned diagnostic view allows comparing sensor changes at
+# the same GPS observation, without inventing a timestamp ordering.
+section("Đối chiếu nhiên liệu, vận tốc và trạng thái động cơ")
+with st.container(border=False, key="chart_panel_sensor_comparison"):
+    st.markdown(
+        '<div class="chart-heading">Diễn biến tín hiệu trên cùng trục điểm đo</div>',
+        unsafe_allow_html=True,
+    )
+    st.caption(
+        "Ba dải biểu đồ dùng chung thứ tự bản ghi GPS. Vạch cam thể hiện vị trí "
+        "được gắn nhãn cần kiểm tra; không phải kết luận nguyên nhân."
+    )
+    comparison = display_trace[[
+        "point_index", "fuel_level_pct", "speed_kmh", "engine_status", "anomaly_type"
+    ]].copy()
+    comparison["engine_status"] = comparison["engine_status"].fillna("Không xác định")
+    alert_positions = flagged[["point_index", "anomaly_type"]].drop_duplicates(
+        subset=["point_index"]
+    ).head(120)
+    common_x = alt.X("point_index:Q", title="Thứ tự điểm GPS")
+    alert_rule = alt.Chart(alert_positions).mark_rule(
+        color="#CD8755", strokeDash=[3, 4], opacity=0.6
+    ).encode(
+        x=common_x,
+        tooltip=[
+            alt.Tooltip("point_index:Q", title="Điểm GPS"),
+            alt.Tooltip("anomaly_type:N", title="Nhãn"),
+        ]
+    )
+    fuel_line = alt.Chart(comparison).mark_line(
+        color="#178B83", strokeWidth=2
+    ).encode(
+        x=common_x,
+        y=alt.Y("fuel_level_pct:Q", title="Nhiên liệu (%)"),
+        tooltip=[
+            alt.Tooltip("point_index:Q", title="Điểm GPS"),
+            alt.Tooltip("fuel_level_pct:Q", title="Nhiên liệu (%)", format=".2f"),
+        ],
+    )
+    speed_line = alt.Chart(comparison).mark_line(
+        color="#337FB6", strokeWidth=2
+    ).encode(
+        x=common_x,
+        y=alt.Y("speed_kmh:Q", title="Vận tốc (km/h)"),
+        tooltip=[
+            alt.Tooltip("point_index:Q", title="Điểm GPS"),
+            alt.Tooltip("speed_kmh:Q", title="Vận tốc (km/h)", format=".2f"),
+        ],
+    )
+    engine_points = alt.Chart(comparison).mark_tick(
+        thickness=2, size=17, color="#8062B5"
+    ).encode(
+        x=common_x,
+        y=alt.Y("engine_status:N", title="Động cơ"),
+        tooltip=[
+            alt.Tooltip("point_index:Q", title="Điểm GPS"),
+            alt.Tooltip("engine_status:N", title="Trạng thái"),
+        ],
+    )
+    aligned = alt.vconcat(
+        alt.layer(fuel_line, alert_rule).properties(height=140),
+        alt.layer(speed_line, alert_rule).properties(height=140),
+        alt.layer(engine_points, alert_rule).properties(height=105),
+        spacing=17,
+    ).resolve_scale(x="shared").configure(
+        background="#FFFFFF"
+    ).configure_view(
+        stroke=None
+    ).configure_axis(
+        labelColor="#172D43", titleColor="#172D43", gridColor="#E7EEF3"
+    )
+    st.altair_chart(aligned, use_container_width=True, theme=None)
+
 @st.cache_data(ttl=600)
 def get_flagged_vehicles():
     return con.execute("""
