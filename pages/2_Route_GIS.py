@@ -138,6 +138,44 @@ else:
         "Đây là mật độ xe chạy chậm/dừng, không phải kết luận tắc đường."
     )
 
+# GPS hotspots are observation-density cells, not verified traffic congestion.
+if not spots.empty:
+    section("Vị trí có nhiều điểm vận tốc thấp")
+    with st.container(border=False, key="chart_panel_hotspots"):
+        top_hotspots = spots.head(10).copy()
+        top_hotspots["position"] = (
+            top_hotspots["latitude"].map(lambda n: f"{n:.2f}") + ", " +
+            top_hotspots["longitude"].map(lambda n: f"{n:.2f}")
+        )
+        left_hot, right_hot = st.columns([1.45, 1], gap="large")
+        with left_hot:
+            chart_hot = alt.Chart(top_hotspots.sort_values("weight")).mark_bar(
+                color="#168D87", cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("weight:Q", title="Số điểm GPS"),
+                y=alt.Y("position:N", sort=None, title="Ô tọa độ"),
+                tooltip=[
+                    alt.Tooltip("position:N", title="Vị trí (vĩ độ, kinh độ)"),
+                    alt.Tooltip("weight:Q", title="Số điểm", format=",")
+                ]
+            ).properties(height=290).configure(
+                background="#FFFFFF"
+            ).configure_view(stroke=None).configure_axis(
+                labelColor="#172D43",titleColor="#172D43",gridColor="#E6EEF2"
+            )
+            st.altair_chart(chart_hot, use_container_width=True, theme=None)
+        with right_hot:
+            st.markdown("**10 ô tọa độ có nhiều ghi nhận nhất**")
+            st.dataframe(
+                top_hotspots[["position", "weight"]].rename(columns={
+                    "position":"Vĩ độ, kinh độ", "weight":"Điểm vận tốc thấp"
+                }),use_container_width=True,hide_index=True,height=320,
+            )
+        st.caption(
+            "Mỗi ô là tọa độ làm tròn 0,01 độ; giá trị thể hiện số lần ghi nhận GPS, "
+            "không phải số vụ ùn tắc hoặc số xe khác nhau."
+        )
+
 @st.cache_data(ttl=600)
 def gps_trip_choices(start,end,route_value):
     sql="""
