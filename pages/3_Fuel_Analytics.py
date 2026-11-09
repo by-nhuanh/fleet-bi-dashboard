@@ -105,12 +105,14 @@ if not alert_labels.empty:
 section("Phân tích chi tiết theo chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
 index_options={row.trip_id:row for row in options.itertuples()}
-left,right=st.columns([2,1])
-with left:
-    trip=st.selectbox("Chọn chuyến để chẩn đoán",trip_list,
-                      format_func=lambda x:f"{x} · {int(index_options[x].flagged_points)} điểm có nhãn")
-with right:
-    point_limit=st.selectbox("Điểm hiển thị tối đa",[2500,5000,10000],index=1)
+with st.container(border=False, key="filter_bar"):
+    filter_title()
+    left,right=st.columns([2,1])
+    with left:
+        trip=st.selectbox("Chọn chuyến để chẩn đoán",trip_list,
+                          format_func=lambda x:f"{x} · {int(index_options[x].flagged_points)} điểm có nhãn")
+    with right:
+        point_limit=st.selectbox("Điểm hiển thị tối đa",[2500,5000,10000],index=1)
 
 @st.cache_data(ttl=600)
 def get_trace(trip_id):
