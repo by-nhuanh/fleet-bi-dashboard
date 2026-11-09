@@ -3,37 +3,17 @@ import duckdb
 import pandas as pd
 import altair as alt
 import streamlit as st
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from ui import setup, page_header, filter_title, section, metric_card, note
 
-st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide")
+st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide",initial_sidebar_state="expanded")
 DB=Path(__file__).resolve().parents[1]/"database"/"fleet_analysis.duckdb"
 if not DB.is_file():
     st.error("Chưa có database/fleet_analysis.duckdb. Hãy bổ sung bản dữ liệu GPS đã xuất từ DDS.")
     st.stop()
 
-st.markdown("""
-<style>
-html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#F4F7FA!important;color:#172E40!important;color-scheme:light}
-.block-container{max-width:1490px;padding-top:1.45rem}
-[data-testid="stVerticalBlockBorderWrapper"]>div{border-radius:14px!important;border-color:#E2EAF0!important;background:#fff!important}
-[data-testid="stSidebar"]{background:#F4F7FA!important}
-.hd{background:#102D40;color:#fff;border-radius:13px;padding:1.1rem 1.4rem;margin-bottom:1.2rem}
-.hd strong{color:white;font-size:1.15rem}.hd small{color:#C4D8DC}
-.section{font-size:1.16rem;color:#193748;font-weight:760;margin:1.5rem 0 .5rem}
-.note{background:#E8F1F2;padding:.85rem 1rem;border-left:3px solid #3F9696;color:#375F70;border-radius:0 9px 9px 0}
-</style>
-<div class="hd"><strong>FLEET BI &nbsp; / &nbsp; Fuel Diagnostics</strong>
-<small style="float:right">TASK 12 · FUEL ANALYTICS</small></div>
-""",unsafe_allow_html=True)
-
-
-# Navigation between deliverables (visible even when the Streamlit sidebar is collapsed).
-nav1,nav2,nav3=st.columns(3)
-with nav1:
-    st.page_link("app.py",label="01 · Tổng quan vận hành",use_container_width=True)
-with nav2:
-    st.page_link("pages/2_Route_GIS.py",label="02 · GIS & tuyến đường",use_container_width=True)
-with nav3:
-    st.page_link("pages/3_Fuel_Analytics.py",label="03 · Phân tích nhiên liệu",use_container_width=True)
+setup(12)
 
 @st.cache_resource
 def connect():
@@ -60,13 +40,20 @@ if options.empty:
     st.warning("Chưa có chuyến có dữ liệu GPS.")
     st.stop()
 
-st.title("Chẩn đoán bất thường nhiên liệu")
-st.caption("Đối chiếu dữ liệu cảm biến nhiên liệu, vận tốc, động cơ và nhãn sự kiện trong DDS")
+page_header(12, "Chẩn đoán bất thường nhiên liệu",
+    "Đối chiếu nhiên liệu, vận tốc, trạng thái động cơ và các nhãn ghi nhận từ DDS.")
 
-a,b,c=st.columns(3)
-a.metric("Chuyến có dữ liệu GPS",f"{len(options):,}")
-b.metric("Chuyến có nhãn cần kiểm tra",f"{(options.flagged_points>0).sum():,}")
-c.metric("Điểm GPS có nhãn",f"{options.flagged_points.sum():,}")
+section("Tổng quan cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
+a,b,c=st.columns(3, gap="medium")
+with a:
+    metric_card("Chuyến có dữ liệu GPS",f"{len(options):,}",
+                "Chuyến có bản ghi cảm biến", "truck", "#287CF0", "#E7F1FF")
+with b:
+    metric_card("Chuyến có nhãn cần kiểm tra",f"{(options.flagged_points>0).sum():,}",
+                "Không đồng nghĩa đã xác nhận sự cố", "alert", "#C87C56", "#FCEDF0")
+with c:
+    metric_card("Điểm GPS có nhãn",f"{options.flagged_points.sum():,}",
+                "Bao gồm các nhãn bất thường DDS", "location", "#7467B6", "#F0EDFB")
 
 @st.cache_data(ttl=600)
 def get_labels():
@@ -99,7 +86,7 @@ def get_flagged_vehicles():
     """).df()
 
 flagged_vehicles=get_flagged_vehicles()
-st.markdown('<div class="section">Danh sách xe có nhãn cần xác minh</div>',unsafe_allow_html=True)
+section("Danh sách xe có nhãn cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
 st.caption("Danh sách tổng hợp toàn đội xe trong dữ liệu GPS, không phụ thuộc chuyến đang chọn. "
            "Nhãn FUEL_THEFT chỉ là dấu hiệu cần kiểm tra, chưa chứng minh hành vi gian lận.")
 if flagged_vehicles.empty:
@@ -110,7 +97,7 @@ else:
         "flagged_points":"Điểm có nhãn","affected_trips":"Chuyến liên quan",
     }),hide_index=True,use_container_width=True)
 
-st.markdown('<div class="section">Phân tích chi tiết một chuyến</div>',unsafe_allow_html=True)
+section("Phân tích chi tiết chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
 index_options={row.trip_id:row for row in options.itertuples()}
 left,right=st.columns([2,1])
@@ -166,7 +153,7 @@ if len(trace)>point_limit:
     st.caption(f"Chuỗi có {len(trace):,} điểm; biểu đồ hiển thị {len(display_trace):,} "
                "điểm thực (lấy mẫu theo thứ tự và luôn giữ điểm có nhãn).")
 
-st.markdown('<div class="section">Chuỗi thời gian cảm biến</div>',unsafe_allow_html=True)
+section("Diễn biến cảm biến", "NHIÊN LIỆU · VẬN TỐC · ĐỘNG CƠ")
 st.caption("Dữ liệu thời gian trong bản DDS triển khai có độ phân giải đến phút. "
            "Trục ngang dùng thứ tự điểm đo để tránh gộp các bản ghi cùng phút.")
 
@@ -213,7 +200,7 @@ with st.container(border=True):
     ).configure_axis(labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2")
     st.altair_chart(engine_chart,use_container_width=True,theme=None)
 
-st.markdown('<div class="section">Danh sách điểm được gắn nhãn</div>',unsafe_allow_html=True)
+section("Chi tiết điểm có nhãn", "ĐỐI SOÁT BẢN GHI GPS")
 if flagged.empty:
     st.info("Không có điểm được gắn nhãn bất thường trong chuyến này.")
 else:
@@ -229,7 +216,7 @@ else:
         }),use_container_width=True,hide_index=True
     )
 
-st.markdown('<div class="section">Cây quyết định hỗ trợ chẩn đoán</div>',unsafe_allow_html=True)
+section("Cây quyết định hỗ trợ chẩn đoán", "HƯỚNG DẪN XÁC MINH")
 with st.container(border=True):
     st.markdown("""
 **Bước 1 – Đối chiếu tín hiệu:** Kiểm tra thứ tự điểm đo, vận tốc, trạng thái động cơ, chênh lệch nhiên liệu và nhãn gốc.
@@ -243,9 +230,4 @@ with st.container(border=True):
 **Bước 3 – Xác minh:** So sánh với giao dịch mua nhiên liệu, lịch sử chuyến, dữ liệu đo lặp và kiểm tra hiện trường. Các quy tắc này là *logic diễn giải*, không tự sinh kết luận gian lận từ một ngưỡng chưa được phê duyệt.
 """)
 
-st.markdown("""
-<div class="note"><b>Giới hạn phân tích:</b> Chỉ các chuyến có GPS mới được chẩn đoán.
-Nhãn FUEL_THEFT, IDLE_EXTENDED hoặc các nhãn khác là dữ liệu có sẵn,
-không khẳng định đã xảy ra trộm cắp hoặc hỏng hóc.
-Bản Dashboard chưa thiết lập ngưỡng giảm nhiên liệu để tự động kết luận nguyên nhân.</div>
-""",unsafe_allow_html=True)
+note("Giới hạn: Chỉ các chuyến có GPS mới được chẩn đoán. Nhãn FUEL_THEFT hay IDLE_EXTENDED là nhãn được ghi nhận, không khẳng định gian lận hay hỏng hóc. Chưa có ngưỡng định lượng đã duyệt để tự động suy ra nguyên nhân.")
