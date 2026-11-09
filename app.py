@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Fleet BI | Fleet Operations",
     page_icon="🚚",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 DB_PATH = Path(__file__).resolve().parent / "database" / "fleet_dw.duckdb"
