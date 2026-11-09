@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ui import setup, page_header, filter_title, section, metric_card, metric_grid, note
 
-st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", layout="wide", initial_sidebar_state="collapsed")
 
 DB = Path(__file__).resolve().parents[1] / "database" / "fleet_analysis.duckdb"
 if not DB.exists():
