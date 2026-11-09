@@ -54,7 +54,7 @@ if bounds[0] is None or bounds[1] is None:
     st.stop()
 
 page_header(10, "Tổng quan vận hành",
-    "Tổng hợp chuyến đi, tỷ lệ giao hàng trễ và chi phí mua nhiên liệu từ DDS.")
+    "Theo dõi số chuyến, tỷ lệ giao hàng trễ và chi phí mua nhiên liệu theo phạm vi đã chọn.")
 filter_title()
 
 facility_types = sorted(locations["facility_type"].dropna().unique().tolist())
@@ -76,7 +76,7 @@ with filter_cols[0]:
 with filter_cols[1]:
     st.markdown('<div class="filter-label">Chi nhánh / cơ sở xuất phát</div>', unsafe_allow_html=True)
     origin_labels = st.multiselect(
-        "Chi nhánh / cơ sở xuất phát",
+        "Cơ sở xuất phát",
         list(location_options),
         placeholder="Tất cả cơ sở",
         label_visibility="collapsed",
@@ -178,11 +178,11 @@ late = int(kpi["late_trips"])
 fuel = float(kpi["fuel_cost_usd"])
 late_pct = 100 * late / eligible if eligible else None
 
-section("Chỉ số vận hành", "TOÀN BỘ CHỈ SỐ LẤY TỪ DUCKDB")
-cards = st.columns(4, gap="medium")
+section("Chỉ số vận hành", "TỔNG HỢP THEO BỘ LỌC")
+cards = st.columns(4, gap="large")
 with cards[0]:
     metric_card("Tổng số chuyến", f"{total:,}",
-                "Số chuyến trong bộ lọc", "truck", "#287CF0", "#E7F1FF")
+                "Số chuyến thuộc phạm vi đang chọn", "truck", "#287CF0", "#E7F1FF")
 with cards[1]:
     metric_card("Tỷ lệ giao hàng trễ",
                 f"{late_pct:.2f}%" if late_pct is not None else "N/A",
@@ -192,8 +192,8 @@ with cards[2]:
     metric_card("Chi phí mua nhiên liệu", f"${fuel:,.2f}",
                 "USD · Theo chuyến liên kết", "fuel", "#23936F", "#E5F7EE")
 with cards[3]:
-    metric_card("Chuyến đủ điều kiện KPI", f"{eligible:,}",
-                "Mẫu số tính tỷ lệ giao hàng trễ", "check", "#7467B6", "#F0EDFB")
+    metric_card("Chuyến đủ điều kiện đánh giá", f"{eligible:,}",
+                "Số chuyến được tính trong tỷ lệ giao trễ", "check", "#7467B6", "#F0EDFB")
 
 if monthly.empty:
     st.warning("Không có chuyến nào phù hợp bộ lọc hiện tại.")
@@ -267,7 +267,7 @@ late_chart = make_chart_light(late_chart)
 fuel_chart = make_chart_light(fuel_chart)
 
 section("Xu hướng vận hành", hint="THỐNG KÊ THEO THÁNG")
-left, right = st.columns(2, gap="medium")
+left, right = st.columns(2, gap="large")
 with left:
     with st.container(border=True):
         st.markdown('<div class="chart-heading">Số chuyến theo tháng</div><div class="chart-subtitle">Phân bố tổng chuyến theo thời điểm khởi hành</div>', unsafe_allow_html=True)
@@ -293,7 +293,7 @@ with st.expander("Bảng dữ liệu đối soát theo tháng"):
         "eligible_trips": "Đủ điều kiện",
         "late_trips": "Chuyến trễ",
         "late_rate_pct": "Tỷ lệ trễ (%)",
-        "fuel_cost_usd": "Chi phí nhiên liệu (USD)",
+        "fuel_cost_usd": "Chi phí mua nhiên liệu (USD)",
     })
     st.dataframe(display, use_container_width=True, hide_index=True)
 
