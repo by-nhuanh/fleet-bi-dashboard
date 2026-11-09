@@ -55,7 +55,6 @@ if bounds[0] is None or bounds[1] is None:
 
 page_header(10, "Tổng quan vận hành",
     "Theo dõi số chuyến, tỷ lệ giao hàng trễ và chi phí mua nhiên liệu theo phạm vi đã chọn.")
-filter_title()
 
 facility_types = sorted(locations["facility_type"].dropna().unique().tolist())
 location_options = {
@@ -63,49 +62,50 @@ location_options = {
     for r in locations.itertuples()
 }
 
-filter_cols = st.columns([1.45, 1.45, 1], gap="medium")
-with filter_cols[0]:
-    st.markdown('<div class="filter-label">Khoảng ngày bắt đầu chuyến</div>', unsafe_allow_html=True)
-    date_range = st.date_input(
-        "Khoảng ngày bắt đầu chuyến",
-        value=(bounds[0], bounds[1]),
-        min_value=bounds[0],
-        max_value=bounds[1],
-        label_visibility="collapsed",
-    )
-with filter_cols[1]:
-    st.markdown('<div class="filter-label">Chi nhánh / cơ sở xuất phát</div>', unsafe_allow_html=True)
-    origin_labels = st.multiselect(
-        "Cơ sở xuất phát",
-        list(location_options),
-        placeholder="Tất cả cơ sở",
-        label_visibility="collapsed",
-    )
-with filter_cols[2]:
-    st.markdown('<div class="filter-label">Phương tiện</div>', unsafe_allow_html=True)
-    vehicle_ids = st.multiselect(
-        "Phương tiện",
-        vehicles,
-        placeholder="Tất cả phương tiện",
-        label_visibility="collapsed",
-    )
-
-with st.expander("Bộ lọc nâng cao · Loại cơ sở và địa điểm đến", expanded=False):
-    loc_left, loc_right = st.columns(2)
-    with loc_left:
-        selected_types = st.multiselect(
-            "Loại cơ sở xuất phát",
-            facility_types,
-            placeholder="Tất cả loại cơ sở",
+with st.container(border=False, key="filter_bar"):
+    filter_cols = st.columns([1.45, 1.45, 1], gap="medium")
+    with filter_cols[0]:
+        st.markdown('<div class="filter-label">Khoảng ngày bắt đầu chuyến</div>', unsafe_allow_html=True)
+        date_range = st.date_input(
+            "Khoảng ngày bắt đầu chuyến",
+            value=(bounds[0], bounds[1]),
+            min_value=bounds[0],
+            max_value=bounds[1],
+            label_visibility="collapsed",
         )
-    with loc_right:
-        destination_labels = st.multiselect(
-            "Địa điểm đến",
+    with filter_cols[1]:
+        st.markdown('<div class="filter-label">Cơ sở xuất phát</div>', unsafe_allow_html=True)
+        origin_labels = st.multiselect(
+            "Cơ sở xuất phát",
             list(location_options),
-            placeholder="Tất cả điểm đến",
+            placeholder="Tất cả cơ sở",
+            label_visibility="collapsed",
+        )
+    with filter_cols[2]:
+        st.markdown('<div class="filter-label">Phương tiện</div>', unsafe_allow_html=True)
+        vehicle_ids = st.multiselect(
+            "Phương tiện",
+            vehicles,
+            placeholder="Tất cả phương tiện",
+            label_visibility="collapsed",
         )
 
-st.caption("Quy ước bộ lọc: cơ sở xuất phát được dùng để phân nhóm như chi nhánh vận hành; dữ liệu nguồn chưa có trường chi nhánh độc lập.")
+    with st.expander("Bộ lọc nâng cao · Loại cơ sở và địa điểm đến", expanded=False):
+        loc_left, loc_right = st.columns(2)
+        with loc_left:
+            selected_types = st.multiselect(
+                "Loại cơ sở xuất phát",
+                facility_types,
+                placeholder="Tất cả loại cơ sở",
+            )
+        with loc_right:
+            destination_labels = st.multiselect(
+                "Địa điểm đến",
+                list(location_options),
+                placeholder="Tất cả điểm đến",
+            )
+
+    st.caption("Quy ước bộ lọc: cơ sở xuất phát được dùng để phân nhóm như chi nhánh vận hành; dữ liệu nguồn chưa có trường chi nhánh độc lập.")
 
 if len(date_range) != 2:
     st.info("Chọn đủ ngày bắt đầu và ngày kết thúc để xem Dashboard.")
