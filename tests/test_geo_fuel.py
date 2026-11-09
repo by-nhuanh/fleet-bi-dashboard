@@ -34,6 +34,21 @@ class GeoFuelAcceptanceTests(unittest.TestCase):
                   "engine_status","anomaly_type"}
         self.assertTrue(required.issubset(fields),required-fields)
 
+    def test_recorded_gps_anomaly_counts(self):
+        recorded=dict(self.con.execute("""
+            SELECT anomaly_type,COUNT(*)
+            FROM dds.Fact_GPS_Points
+            GROUP BY anomaly_type
+        """).fetchall())
+        expected={
+            "NORMAL": 1435491,
+            "FUEL_THEFT": 15,
+            "IDLE_EXTENDED": 36,
+            "GPS_JUMP_RECOVERY": 16,
+            "FUEL_RECEIPT_MISMATCH": 13,
+        }
+        self.assertEqual(recorded,expected)
+
     def test_linked_trip_keys(self):
         n=self.con.execute("""
             SELECT COUNT(*) FROM dds.Fact_GPS_Points g
