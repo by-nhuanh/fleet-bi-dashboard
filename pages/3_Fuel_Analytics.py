@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from ui import setup, page_header, filter_title, section, metric_card, metric_grid, note
 
-st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide",initial_sidebar_state="expanded")
+st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide",initial_sidebar_state="collapsed")
 DB=Path(__file__).resolve().parents[1]/"database"/"fleet_analysis.duckdb"
 if not DB.is_file():
     st.error("Chưa tìm thấy cơ sở dữ liệu cảm biến phục vụ phân tích nhiên liệu.")
