@@ -250,15 +250,15 @@ def make_chart_light(chart):
         )
         .configure_view(stroke=None, fill="#ffffff")
         .configure_axis(
-            labelColor="#344b60",
-            titleColor="#344b60",
+            labelColor="#111827",
+            titleColor="#111827",
             domainColor="#becdd5",
             tickColor="#becdd5",
             gridColor="#e9eff1",
             labelFontSize=11,
             titleFontSize=12,
         )
-        .configure_legend(labelColor="#344b60", titleColor="#344b60")
+        .configure_legend(labelColor="#111827", titleColor="#111827")
         .configure_title(color="#203a51")
     )
 
