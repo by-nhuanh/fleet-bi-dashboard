@@ -16,7 +16,7 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 [data-testid="stMain"] .block-container{max-width:1450px;padding:2rem 2.1rem 3rem}
 [data-testid="stMain"] p,[data-testid="stMain"] label,[data-testid="stMain"] h1,
 [data-testid="stMain"] h2,[data-testid="stMain"] h3{color:var(--ink)}
-[data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *{color:#647B90!important}
+[data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *{color:#203548!important}
 [data-testid="stVerticalBlockBorderWrapper"]>div{
  background:#FFFFFF!important;border:1px solid var(--line)!important;
  border-radius:16px!important;box-shadow:0 4px 16px rgba(26,53,85,.035)
@@ -27,7 +27,7 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 [data-baseweb="select"]>div,[data-baseweb="input"]>div,[data-testid="stDateInput"] input{
  background:#FFF!important;color:#19364E!important;border:1px solid #D8E3EE!important;border-radius:10px!important
 }
-[data-testid="stDateInput"] input::placeholder,[data-testid="stMultiSelect"] input::placeholder{color:#6B8194!important;opacity:1}
+[data-testid="stDateInput"] input::placeholder,[data-testid="stMultiSelect"] input::placeholder{color:#24394C!important;opacity:1}
 [data-testid="stSidebar"]{background:linear-gradient(180deg,#102F4B 0%,#153D63 76%,#19456C 100%)!important}
 [data-testid="stSidebar"]>div{background:transparent!important}
 [data-testid="stSidebarNav"]{display:none!important}
@@ -73,27 +73,27 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 .dashboard-title-area{border-left:4px solid #2985F4;padding-left:1.1rem}
 .dashboard-eyebrow{color:#317BC6;font-weight:780;font-size:.7rem;letter-spacing:.12em;margin-bottom:.38rem}
 .dashboard-title{font-weight:790;color:#17324E;font-size:clamp(1.55rem,2.5vw,2rem);line-height:1.25;letter-spacing:-.035em}
-.dashboard-description{color:#60788F;font-size:.86rem;margin-top:.35rem;line-height:1.45}
+.dashboard-description{color:#24394C;font-size:.86rem;margin-top:.35rem;line-height:1.45}
 .dashboard-chip{flex-shrink:0;background:#E8F0FC;color:#2A669E;padding:.48rem .75rem;
  border:1px solid #D6E5F7;border-radius:10px;font-size:.75rem;font-weight:760}
 .filter-caption{display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:760;color:#264B72;margin-bottom:.6rem}
 .filter-caption svg{height:18px;width:18px;stroke:#287CF0;stroke-width:1.9;fill:none;stroke-linecap:round}
 .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:1.45rem 0 .75rem}
 .panel-heading-title{font-weight:770;font-size:1.07rem;letter-spacing:-.02em;color:#1B3753}
-.panel-heading-hint{color:#8A9CAF;font-size:.72rem;font-weight:620;text-align:right}
+.panel-heading-hint{color:#253C50;font-size:.72rem;font-weight:620;text-align:right}
 .kpi-card{background:#FFF;border:1px solid #E1EAF4;border-radius:15px;
- padding:1.04rem 1.14rem;min-height:150px;box-shadow:0 4px 16px rgba(27,59,90,.045);
- border-top:3px solid var(--accent)}
+ padding:1.04rem 1.14rem;height:178px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 16px rgba(27,59,90,.045);
+ border-top:1px solid #E1EAF4}
 .kpi-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
-.kpi-label{font-size:.78rem;color:#5C748A;font-weight:680;line-height:1.35}
+.kpi-label{font-size:.78rem;color:#1A2C40;font-weight:680;line-height:1.35}
 .kpi-icon{height:38px;width:38px;border-radius:11px;background:var(--tint);color:var(--accent);
  display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .kpi-icon svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kpi-value{margin:.62rem 0 .29rem;font-weight:790;font-size:clamp(1.3rem,2.25vw,2.07rem);
- letter-spacing:-.04em;color:#142C46;white-space:nowrap}
-.kpi-foot{color:#74899D;font-size:.735rem;line-height:1.4}
+.kpi-value{margin:.62rem 0 .29rem;font-weight:790;font-size:clamp(1.28rem,1.9vw,1.92rem);
+ letter-spacing:-.04em;color:#142C46;white-space:normal;overflow-wrap:anywhere}
+.kpi-foot{color:#20374A;font-size:.735rem;line-height:1.4}
 .chart-heading{font-size:.93rem;font-weight:750;color:#23405A;margin:.15rem 0 .35rem}
-.chart-subtitle{font-size:.76rem;color:#7C91A4;margin:.1rem 0 .6rem}
+.chart-subtitle{font-size:.76rem;color:#24394C;margin:.1rem 0 .6rem}
 .note-panel{padding:.87rem 1.05rem;border-left:3px solid #2B94A0;border-radius:0 10px 10px 0;
  background:#EAF4F5;color:#426575;font-size:.8rem;line-height:1.62;margin:1rem 0}
 [data-testid="stMetric"]{background:#fff;border:1px solid #E1EAF4;border-radius:15px;
@@ -103,10 +103,41 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 @media(max-width:900px){
  [data-testid="stMain"] .block-container{padding:1.1rem .9rem 2rem}
  .dashboard-header{flex-direction:column}
- .kpi-card{min-height:137px}
+ .kpi-card{height:164px}
  .kpi-value{font-size:1.55rem}
  .panel-heading-hint{display:none}
 }
+
+/* Uniform contrast, card rhythm and white chart panels */
+[data-testid="stMain"] [data-testid="stCaptionContainer"],
+[data-testid="stMain"] [data-testid="stCaptionContainer"] *,
+[data-testid="stMain"] small,
+[data-testid="stMain"] .chart-subtitle,
+[data-testid="stMain"] .kpi-foot,
+[data-testid="stMain"] .kpi-label,
+[data-testid="stMain"] .dashboard-description,
+[data-testid="stMain"] .panel-heading-hint {
+ color:#1C3043!important;
+}
+[data-testid="stMain"] [data-testid="stVerticalBlock"]{row-gap:.8rem}
+[data-testid="stMain"] [data-testid="stHorizontalBlock"]{gap:1.15rem!important;align-items:stretch!important}
+[data-testid="stMain"] [data-testid="stHorizontalBlock"]>div[data-testid="stColumn"]{min-width:0}
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]>div{
+ background:#FFFFFF!important;
+}
+[data-testid="stMain"] [data-testid="stVegaLiteChart"],
+[data-testid="stMain"] [data-testid="stArrowVegaLiteChart"],
+[data-testid="stMain"] [data-testid="stVegaLiteChart"] > div{
+ background:#FFFFFF!important;
+ border-radius:8px!important;
+}
+[data-testid="stSidebar"] button[kind="secondary"]{
+ background:#2D5B83!important;border:1px solid #789FC1!important;
+ color:white!important;font-weight:700!important;border-radius:10px!important;
+}
+[data-testid="stSidebar"] button[kind="secondary"]:hover{background:#317EC0!important}
+
 </style>
 """
 
@@ -128,7 +159,17 @@ def icon_svg(name):
 def setup(page):
     """Consistent fixed-light design + real, keyboard-accessible navigation."""
     st.markdown(STYLES, unsafe_allow_html=True)
+    if "navigation_compact" not in st.session_state:
+        st.session_state.navigation_compact = False
     with st.sidebar:
+        if st.button(
+            "☰  Thu gọn menu" if not st.session_state.navigation_compact else "☰",
+            key="toggle_navigation",
+            help="Thu gọn hoặc mở rộng thanh điều hướng",
+            use_container_width=True,
+        ):
+            st.session_state.navigation_compact = not st.session_state.navigation_compact
+            st.rerun()
         st.markdown(
             '<div class="nav-brand"><span class="nav-brand-icon">' +
             icon_svg("truck") +
@@ -137,22 +178,46 @@ def setup(page):
             '<div class="nav-label">CHUYỂN ĐẾN TRANG</div>',
             unsafe_allow_html=True,
         )
-        st.page_link("app.py", label="01  Tổng quan vận hành", icon=":material/dashboard:", use_container_width=True)
-        st.page_link("pages/2_Route_GIS.py", label="02  GIS & tuyến đường", icon=":material/map:", use_container_width=True)
-        st.page_link("pages/3_Fuel_Analytics.py", label="03  Phân tích nhiên liệu", icon=":material/local_gas_station:", use_container_width=True)
+        st.page_link("app.py", label="Tổng quan vận hành", icon=":material/dashboard:", use_container_width=True)
+        st.page_link("pages/2_Route_GIS.py", label="Phân tích tuyến đường", icon=":material/map:", use_container_width=True)
+        st.page_link("pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu", icon=":material/local_gas_station:", use_container_width=True)
         st.markdown(
             '<div class="nav-divider"></div><div class="nav-label">DỰ ÁN</div>'
             '<div class="nav-bottom">Dữ liệu: DDS · DuckDB<br>'
-            'Phạm vi: Task 10–12<br>'
+            'Phạm vi: Vận hành đội xe<br>'
             'Không phải dữ liệu thời gian thực</div>',
             unsafe_allow_html=True,
         )
+
+    if st.session_state.navigation_compact:
+        st.markdown("""<style>
+        section[data-testid="stSidebar"]{
+          width:82px!important;min-width:82px!important;max-width:82px!important;
+        }
+        [data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+          width:82px!important;min-width:82px!important;padding-left:9px!important;padding-right:9px!important;
+        }
+        [data-testid="stSidebar"] .nav-brand-text,
+        [data-testid="stSidebar"] .nav-brand-sub,
+        [data-testid="stSidebar"] .nav-label,
+        [data-testid="stSidebar"] .nav-bottom{display:none!important}
+        [data-testid="stSidebar"] .nav-brand{justify-content:center!important;padding:.55rem 0 1rem!important}
+        [data-testid="stSidebar"] [data-testid="stPageLink"] a{
+          font-size:0!important;justify-content:center!important;
+          min-height:50px!important;padding:.55rem!important;gap:0!important;
+        }
+        [data-testid="stSidebar"] [data-testid="stPageLink"] a *{font-size:0!important}
+        [data-testid="stSidebar"] [data-testid="stPageLink"] a svg{
+          width:22px!important;height:22px!important;flex-shrink:0!important;
+        }
+        [data-testid="stSidebar"] button[kind="secondary"]{font-size:1.15rem!important}
+        </style>""",unsafe_allow_html=True)
 
 
 def page_header(number, title, subtitle, badge="DDS · DỮ LIỆU GHI NHẬN"):
     st.markdown(
         '<div class="dashboard-header"><div class="dashboard-title-area">'
-        '<div class="dashboard-eyebrow">FLEET ANALYTICS / TASK ' + html.escape(str(number)) + '</div>'
+        '<div class="dashboard-eyebrow">BÁO CÁO VẬN HÀNH</div>'
         '<div class="dashboard-title">' + html.escape(title) + '</div>'
         '<div class="dashboard-description">' + html.escape(subtitle) + '</div></div>'
         '<div class="dashboard-chip">' + html.escape(badge) + '</div></div>',
