@@ -3,7 +3,7 @@ import duckdb
 import pandas as pd
 import altair as alt
 import streamlit as st
-from ui import setup, page_header, filter_title, section, metric_card, note
+from ui import setup, page_header, filter_title, section, metric_card, metric_grid, note
 
 st.set_page_config(
     page_title="Fleet BI | Fleet Operations",
@@ -179,21 +179,18 @@ fuel = float(kpi["fuel_cost_usd"])
 late_pct = 100 * late / eligible if eligible else None
 
 section("Chỉ số vận hành", "TỔNG HỢP THEO BỘ LỌC")
-cards = st.columns(4, gap="large")
-with cards[0]:
+metric_grid([
     metric_card("Tổng số chuyến", f"{total:,}",
-                "Số chuyến thuộc phạm vi đang chọn", "truck", "#287CF0", "#E7F1FF")
-with cards[1]:
+                "Số chuyến thuộc phạm vi đang chọn", "truck", render=False),
     metric_card("Tỷ lệ giao hàng trễ",
                 f"{late_pct:.2f}%" if late_pct is not None else "N/A",
                 f"{late:,} chuyến trễ / {eligible:,} chuyến đủ điều kiện",
-                "alert", "#C87C56", "#FCEDF0")
-with cards[2]:
+                "alert", render=False),
     metric_card("Chi phí mua nhiên liệu", f"${fuel:,.2f}",
-                "USD · Theo chuyến liên kết", "fuel", "#23936F", "#E5F7EE")
-with cards[3]:
+                "USD · Theo chuyến liên kết", "fuel", render=False),
     metric_card("Chuyến đủ điều kiện đánh giá", f"{eligible:,}",
-                "Số chuyến được tính trong tỷ lệ giao trễ", "check", "#7467B6", "#F0EDFB")
+                "Số chuyến được tính trong tỷ lệ giao trễ", "check", render=False),
+], columns=4)
 
 if monthly.empty:
     st.warning("Không có chuyến nào phù hợp bộ lọc hiện tại.")
