@@ -3,6 +3,5 @@ __pycache__/
 .streamlit/secrets.toml
 *.log
 .ipynb_checkpoints/
-# Never commit original warehouse or raw datasets
-fleet_dw.duckdb
+# Avoid committing any original raw or staging files
 *.duckdb.wal
