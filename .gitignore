@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.streamlit/secrets.toml
+*.log
+.ipynb_checkpoints/
+# Never commit original warehouse or raw datasets
+fleet_dw.duckdb
+*.duckdb.wal
