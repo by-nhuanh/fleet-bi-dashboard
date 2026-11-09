@@ -69,34 +69,6 @@ def get_labels():
 with st.expander("Phân bố nhãn bất thường gốc trong DDS",expanded=False):
     st.dataframe(get_labels(),hide_index=True,use_container_width=True)
 
-@st.cache_data(ttl=600)
-def get_flagged_vehicles():
-    return con.execute("""
-        SELECT v.truck_id AS vehicle_id,
-               CAST(g.anomaly_type AS VARCHAR) AS recorded_label,
-               COUNT(*) AS flagged_points,
-               COUNT(DISTINCT g.trip_id) AS affected_trips
-        FROM dds.Fact_GPS_Points g
-        JOIN dds.Dim_Vehicle v ON g.vehicle_key=v.vehicle_key
-        WHERE g.anomaly_type IN (
-            'FUEL_THEFT','IDLE_EXTENDED','FUEL_RECEIPT_MISMATCH'
-        )
-        GROUP BY v.truck_id, g.anomaly_type
-        ORDER BY affected_trips DESC, flagged_points DESC, v.truck_id
-    """).df()
-
-flagged_vehicles=get_flagged_vehicles()
-section("Danh sách xe có nhãn cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
-st.caption("Danh sách tổng hợp toàn đội xe trong dữ liệu GPS, không phụ thuộc chuyến đang chọn. "
-           "Nhãn FUEL_THEFT chỉ là dấu hiệu cần kiểm tra, chưa chứng minh hành vi gian lận.")
-if flagged_vehicles.empty:
-    st.info("Không tìm thấy xe có nhãn nhiên liệu hoặc nổ máy chờ.")
-else:
-    st.dataframe(flagged_vehicles.rename(columns={
-        "vehicle_id":"Mã xe","recorded_label":"Nhãn gốc DDS",
-        "flagged_points":"Điểm có nhãn","affected_trips":"Chuyến liên quan",
-    }),hide_index=True,use_container_width=True)
-
 section("Phân tích chi tiết chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
 index_options={row.trip_id:row for row in options.itertuples()}
@@ -199,6 +171,35 @@ with st.container(border=True):
         stroke=None
     ).configure_axis(labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2")
     st.altair_chart(engine_chart,use_container_width=True,theme=None)
+
+@st.cache_data(ttl=600)
+def get_flagged_vehicles():
+    return con.execute("""
+        SELECT v.truck_id AS vehicle_id,
+               CAST(g.anomaly_type AS VARCHAR) AS recorded_label,
+               COUNT(*) AS flagged_points,
+               COUNT(DISTINCT g.trip_id) AS affected_trips
+        FROM dds.Fact_GPS_Points g
+        JOIN dds.Dim_Vehicle v ON g.vehicle_key=v.vehicle_key
+        WHERE g.anomaly_type IN (
+            'FUEL_THEFT','IDLE_EXTENDED','FUEL_RECEIPT_MISMATCH'
+        )
+        GROUP BY v.truck_id, g.anomaly_type
+        ORDER BY affected_trips DESC, flagged_points DESC, v.truck_id
+    """).df()
+
+flagged_vehicles=get_flagged_vehicles()
+section("Danh sách xe có nhãn cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
+st.caption("Danh sách tổng hợp toàn đội xe trong dữ liệu GPS, không phụ thuộc chuyến đang chọn. "
+           "Nhãn FUEL_THEFT chỉ là dấu hiệu cần kiểm tra, chưa chứng minh hành vi gian lận.")
+if flagged_vehicles.empty:
+    st.info("Không tìm thấy xe có nhãn nhiên liệu hoặc nổ máy chờ.")
+else:
+    st.dataframe(flagged_vehicles.rename(columns={
+        "vehicle_id":"Mã xe","recorded_label":"Nhãn gốc DDS",
+        "flagged_points":"Điểm có nhãn","affected_trips":"Chuyến liên quan",
+    }),hide_index=True,use_container_width=True)
+
 
 section("Chi tiết điểm có nhãn", "ĐỐI SOÁT BẢN GHI GPS")
 if flagged.empty:
