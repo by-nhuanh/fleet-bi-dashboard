@@ -7,243 +7,144 @@ import streamlit as st
 
 STYLES = r"""
 <style>
-:root {
-  color-scheme:light;
-  --ink:#172D43; --muted:#26394D; --line:#DDE6EF;
-  --page:#F4F7FB; --white:#FFFFFF; --chrome:#E8EEF5; --blue:#176CBF;
-}
+:root{color-scheme:light;--bg:#F4F7FB;--white:#FFF;--ink:#172B40;
+--muted:#30465B;--line:#E1E8EF;--accent:#277ABF}
 html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
-  background:var(--page)!important;
-  color:var(--ink)!important;color-scheme:light!important;
-  font-family:Inter,"Segoe UI",Arial,sans-serif!important;
-}
-/* Navigation is now at the TOP, not in a side panel. */
-section[data-testid="stSidebar"],
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"],
-[data-testid="stSidebarNav"]{display:none!important}
-[data-testid="stAppViewContainer"] [data-testid="stHeader"]{
-  background:transparent!important;
-}
-[data-testid="stMain"] .block-container{
-  max-width:1510px;padding:1rem 2rem 3rem;
-}
-[data-testid="stMain"] p,[data-testid="stMain"] label,
-[data-testid="stMain"] h1,[data-testid="stMain"] h2,
-[data-testid="stMain"] h3{color:var(--ink)}
-[data-testid="stCaptionContainer"],
-[data-testid="stCaptionContainer"] *{color:#172D43!important}
+ background:var(--bg)!important;color:var(--ink)!important;color-scheme:light!important;
+ font-family:Inter,"Segoe UI",Arial,sans-serif!important}
+section[data-testid="stSidebar"],[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],[data-testid="stSidebarNav"]{display:none!important}
+[data-testid="stHeader"]{background:transparent!important}
+[data-testid="stMain"] .block-container{max-width:1460px;padding:.65rem 1.65rem 2.5rem}
+[data-testid="stMain"] p,[data-testid="stMain"] label,[data-testid="stMain"] h1,
+[data-testid="stMain"] h2,[data-testid="stMain"] h3{color:var(--ink)}
+[data-testid="stCaptionContainer"],[data-testid="stCaptionContainer"] *,
+[data-testid="stMain"] small{color:#26394C!important}
+[data-testid="stMain"] [data-testid="stHorizontalBlock"]{gap:1.12rem!important;align-items:stretch!important}
+[data-testid="stMain"] [data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{min-width:0}
 [data-baseweb="select"]>div,[data-baseweb="input"]>div,
-[data-testid="stDateInput"] input{
-  background:#FFFFFF!important;color:#172D43!important;
-  border:1px solid #D8E3EE!important;border-radius:9px!important;
-}
-[data-testid="stDateInput"] input::placeholder,
-[data-testid="stMultiSelect"] input::placeholder{color:#172D43!important;opacity:1}
-[data-testid="stMain"] [data-testid="stHorizontalBlock"]{
-  gap:1.15rem!important;align-items:stretch!important;
-}
-[data-testid="stMain"] [data-testid="stHorizontalBlock"]>div[data-testid="stColumn"]{
-  min-width:0;
-}
-[data-testid="stMain"] [data-testid="stVerticalBlock"]{row-gap:.8rem}
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"],
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]>div,
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"],
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"],
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stArrowVegaLiteChart"]{
-  background:#FFFFFF!important;background-color:#FFFFFF!important;
-}
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]{
-  border:1px solid #DEE7EF!important;border-radius:14px!important;
-}
+[data-testid="stDateInput"] input{background:#FFFFFF!important;color:#142C44!important;
+ border:1px solid #D7E1EA!important;border-radius:9px!important}
+[data-testid="stMain"] [data-testid="stExpander"]{
+ background:#FFFFFF!important;border:1px solid #E1E8EF!important;border-radius:11px!important}
+[data-testid="stExpander"] summary,[data-testid="stExpander"] summary *{color:#172B40!important}
+[data-testid="stDataFrame"]{background:#FFFFFF;color-scheme:light}
 [data-testid="stMain"] [data-testid="stVegaLiteChart"],
-[data-testid="stMain"] [data-testid="stArrowVegaLiteChart"],
-[data-testid="stMain"] .vega-embed,
-[data-testid="stMain"] .vega-embed>div{background:#FFFFFF!important}
-[data-testid="stExpander"]{
-  border:1px solid var(--line)!important;background:#FFFFFF!important;
-  border-radius:11px!important;
-}
-[data-testid="stExpander"] summary,[data-testid="stExpander"] summary *{
-  color:var(--ink)!important;
-}
-[data-testid="stDataFrame"]{color-scheme:light;background:#FFFFFF}
+[data-testid="stMain"] .vega-embed,[data-testid="stMain"] .vega-embed>div{background:#FFFFFF!important}
 
-/* Chrome-inspired browser tabs: clickable Streamlit buttons, not dummy markup. */
-.browser-brand{
- display:flex;align-items:center;justify-content:space-between;
- gap:12px;padding:10px 16px;
- background:#122F4D;border-radius:14px 14px 0 0;
- color:#FFFFFF;
-}
-.browser-logo{display:flex;align-items:center;gap:11px;
- color:#FFFFFF;font-weight:770;font-size:1.02rem;letter-spacing:-.025em}
-.browser-logo-mark{height:31px;width:31px;border-radius:9px;
- display:flex;align-items:center;justify-content:center;background:#2679CB;color:#FFFFFF}
-.browser-logo-mark svg{height:21px;width:21px;stroke:#FFFFFF;fill:none;
- stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.browser-brand-right{font-size:.73rem;color:#DCEAF6;font-weight:540}
-div[class*="st-key-browser_tabs"]{
-  background:#E8EEF5!important;
-  border:1px solid #D6E2ED!important;border-top:0!important;
-  border-radius:0 0 13px 13px!important;
-  padding:7px 9px 0!important;margin-bottom:1.35rem!important;
-}
-div[class*="st-key-browser_tabs"] [data-testid="stHorizontalBlock"]{
-  gap:6px!important;align-items:end!important;
-}
+/* Top navigation, visually connected to the application header. */
+.browser-brand{display:flex;align-items:center;justify-content:space-between;
+ padding:8px 15px;gap:12px;background:#142E49;border-radius:12px 12px 0 0}
+.browser-logo{display:flex;align-items:center;gap:9px;color:#FFF!important;
+ font-weight:740;font-size:.98rem;letter-spacing:-.02em}
+.browser-logo-mark{height:28px;width:28px;border-radius:8px;background:#277BC6;
+ display:flex;align-items:center;justify-content:center}
+.browser-logo-mark svg{height:19px;width:19px;stroke:#FFF;fill:none;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round}
+.browser-brand-right{font-size:.7rem;color:#D8E6F3;font-weight:540}
+div[class*="st-key-browser_tabs"]{background:#EAF0F6!important;
+ border:1px solid #DFE7EF!important;border-top:0!important;
+ padding:5px 7px 0!important;border-radius:0 0 11px 11px!important;
+ margin-bottom:1.05rem!important}
+div[class*="st-key-browser_tabs"] [data-testid="stHorizontalBlock"]{gap:6px!important;align-items:end!important}
 div[class*="st-key-browser_tabs"] [data-testid="stButton"] button{
-  min-height:45px!important;width:100%!important;
-  border:1px solid transparent!important;border-radius:10px 10px 0 0!important;
-  color:#385166!important;background:#DDE6EF!important;
-  display:flex!important;align-items:center!important;justify-content:flex-start!important;
-  gap:8px!important;padding:10px 14px!important;
-  box-shadow:none!important;font-weight:620!important;font-size:.84rem!important;
-  transition:background-color .15s ease!important;
-}
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;min-height:36px!important;width:100%!important;
+ padding:7px 10px!important;border-radius:8px 8px 0 0!important;
+ border:1px solid transparent!important;box-shadow:none!important;
+ background:#EAF0F6!important;color:#314A60!important;
+ font-weight:600!important;font-size:.83rem!important}
 div[class*="st-key-browser_tabs"] [data-testid="stButton"] button:hover{
-  background:#CEDCEB!important;color:#14344F!important;
-}
+ background:#DEE8F2!important;color:#172F47!important}
 div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"]{
-  background:#FFFFFF!important;color:#14344F!important;
-  border:1px solid #C9D9E9!important;border-bottom:1px solid #FFFFFF!important;
-  font-weight:780!important;
-}
-div[class*="st-key-browser_tabs"] [data-testid="stButton"] button p{
-  color:inherit!important;font-size:inherit!important;line-height:1.25!important;
-}
+ background:#FFFFFF!important;color:#133752!important;
+ border-color:#D9E3EC!important;border-bottom-color:#FFF!important;
+ font-weight:760!important;box-shadow:none!important}
+div[class*="st-key-browser_tabs"] [data-testid="stButton"] button p{font-size:inherit!important;color:inherit!important}
 div[class*="st-key-browser_tabs"] [data-testid="stButton"] button [data-testid="stIconMaterial"]{
-  color:inherit!important;font-size:21px!important;
-}
+ font-size:19px!important;color:inherit!important}
 div[class*="st-key-browser_tabs"] [data-testid="stButton"] button:focus-visible{
-  outline:2px solid #277EC7!important;outline-offset:2px!important;
-}
+ outline:2px solid #267AC8!important;outline-offset:1px!important}
 
-.dashboard-header{display:flex;align-items:flex-start;justify-content:space-between;
-  gap:1.1rem;padding:0 0 1.2rem;border-bottom:1px solid var(--line);margin-bottom:1.2rem}
-.dashboard-title-area{padding-left:14px;border-left:3px solid #2775BE}
-.dashboard-eyebrow{color:#305978;font-size:.7rem;font-weight:760;letter-spacing:.07em;margin-bottom:.28rem}
-.dashboard-title{font-size:clamp(1.55rem,2.35vw,2rem);font-weight:790;color:#172D43;
- letter-spacing:-.035em;line-height:1.25}
-.dashboard-description{font-size:.84rem;line-height:1.4;color:#172D43;margin-top:.34rem}
-.dashboard-chip{font-size:.74rem;color:#245277;font-weight:700;background:#E4EFFA;
- border:1px solid #D2E1F0;padding:.46rem .7rem;border-radius:9px;white-space:nowrap}
-.filter-caption{display:flex;align-items:center;gap:.55rem;color:#213F5B;
- font-size:.86rem;font-weight:750;margin:.15rem 0 .62rem}
-.filter-caption svg{height:18px;width:18px;stroke:#287BC5;stroke-width:1.8;
- fill:none;stroke-linecap:round}
-.panel-heading{display:flex;align-items:center;margin:1.5rem 0 .75rem}
-.panel-heading-title{font-size:1.09rem;color:#172D43;font-weight:760;letter-spacing:-.02em}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
- gap:20px;margin:4px 0 18px;align-items:stretch}
+/* Compact page title */
+.dashboard-header{display:flex;align-items:center;justify-content:space-between;
+ gap:12px;padding:0 0 .9rem;margin-bottom:1rem;border-bottom:1px solid var(--line)}
+.dashboard-title-area{padding:0;border:0}
+.dashboard-eyebrow{font-weight:680;font-size:.67rem;color:#496176;letter-spacing:.07em;margin-bottom:.25rem}
+.dashboard-title{font-size:clamp(1.55rem,2.3vw,1.94rem);font-weight:780;
+ color:#172F46;line-height:1.25;letter-spacing:-.035em}
+.dashboard-description{font-size:.82rem;color:#30465B;margin-top:.23rem}
+.dashboard-chip{background:#EFF4F9;color:#35536A;border:1px solid #DFE8F0;
+ border-radius:8px;padding:.4rem .68rem;font-size:.69rem;font-weight:680;white-space:nowrap}
+
+/* Filters: one continuous white toolbar with predictable spacing. */
+div[class*="st-key-filter_bar"]{background:#FFFFFF!important;border:1px solid var(--line)!important;
+ border-radius:13px!important;padding:14px 17px 12px!important;
+ box-shadow:0 3px 10px rgba(22,50,80,.025)!important;margin-bottom:1.15rem!important}
+div[class*="st-key-filter_bar"] [data-testid="stVerticalBlock"]{row-gap:.5rem!important}
+.filter-caption{display:flex;align-items:center;gap:8px;color:#193C57;
+ font-weight:740;font-size:.82rem;margin:0 0 .45rem}
+.filter-caption svg{height:17px;width:17px;stroke:#267DB7;stroke-width:1.8;fill:none;stroke-linecap:round}
+.filter-label{color:#1A3248;font-size:.76rem;font-weight:650;margin-bottom:4px}
+
+/* KPI grid: compact, evenly spaced and completely neutral borders. */
+.panel-heading{display:flex;align-items:center;margin:1.25rem 0 .65rem}
+.panel-heading-title{display:flex;align-items:center;gap:9px;
+ font-weight:750;font-size:1.02rem;letter-spacing:-.015em;color:#19344C}
+.panel-heading-icon{display:inline-flex;align-items:center;justify-content:center;
+ width:27px;height:27px;border-radius:8px;background:#ECF2F8;color:#32729F}
+.panel-heading-icon svg{width:16px;height:16px;stroke:currentColor;
+ stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;
+ margin:3px 0 13px;align-items:stretch}
 .kpi-grid.kpi-grid-three{grid-template-columns:repeat(3,minmax(0,1fr))}
-.kpi-card{display:flex;flex-direction:column;gap:7px;
- padding:15px 17px;background:#FFFFFF;border:1px solid #DEE7F0;
- border-radius:14px;box-sizing:border-box;min-width:0;min-height:130px;
- box-shadow:0 3px 12px rgba(27,59,90,.035)}
-.kpi-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.kpi-label{font-size:.79rem;font-weight:700;line-height:1.3;color:#111827;
- max-width:calc(100% - 40px)}
-.kpi-icon{width:34px;height:34px;flex-shrink:0;display:flex;
- align-items:center;justify-content:center;background:#EDF3F8;color:#234F76;border-radius:9px}
-.kpi-icon svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;
- fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kpi-value{font-size:clamp(1.3rem,1.7vw,1.84rem);line-height:1.13;font-weight:790;
- color:#142C46;letter-spacing:-.04em;overflow-wrap:anywhere;margin:2px 0 0}
-.kpi-foot{color:#111827;font-size:.72rem;line-height:1.3;margin-top:auto}
-.chart-heading{font-size:.93rem;font-weight:750;color:#213E55;margin:.15rem 0 .35rem}
-.chart-subtitle{font-size:.76rem;color:#172D43;margin:.1rem 0 .6rem}
-.note-panel{padding:.87rem 1.05rem;background:#EAF4F5;border-left:3px solid #2B94A0;
- border-radius:0 10px 10px 0;color:#152638;font-size:.8rem;line-height:1.62;margin:1rem 0}
-@media(max-width:1150px){
+.kpi-card{background:#FFF;border:1px solid #DFE7EF;border-radius:13px;
+ box-sizing:border-box;min-height:119px;min-width:0;padding:13px 15px;
+ display:flex;flex-direction:column;gap:6px;box-shadow:0 3px 10px rgba(20,43,70,.035)}
+.kpi-card-top{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.kpi-label{font-size:.78rem;font-weight:680;line-height:1.3;color:#1D354B;max-width:calc(100% - 40px)}
+.kpi-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;
+ display:flex;align-items:center;justify-content:center;
+ background:#E8F1FC;color:#2872B8}
+.kpi-grid .kpi-card:nth-child(4n+2) .kpi-icon{background:#FFF1E5;color:#B46C36}
+.kpi-grid .kpi-card:nth-child(4n+3) .kpi-icon{background:#E6F5ED;color:#247956}
+.kpi-grid .kpi-card:nth-child(4n+4) .kpi-icon{background:#F0ECFA;color:#745EB2}
+.kpi-icon svg{height:19px;width:19px;stroke:currentColor;stroke-width:1.8;fill:none;
+ stroke-linecap:round;stroke-linejoin:round}
+.kpi-value{font-size:clamp(1.3rem,1.7vw,1.85rem);line-height:1.12;
+ color:#142B43;letter-spacing:-.035em;font-weight:780;overflow-wrap:anywhere}
+.kpi-foot{font-size:.72rem;color:#354B5F;line-height:1.32;margin-top:auto}
+
+/* Precisely target actual keyed chart containers, never just the plotting canvas. */
+[data-testid="stMain"] div[class*="st-key-chart_panel"]{
+ background:#FFFFFF!important;background-color:#FFFFFF!important;
+ background-image:none!important;border:1px solid #DEE6EE!important;
+ border-radius:13px!important;padding:15px 17px!important;
+ box-sizing:border-box!important;box-shadow:0 3px 12px rgba(22,50,80,.025)!important;
+ margin-bottom:4px!important}
+[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVerticalBlock"],
+[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stElementContainer"],
+[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"],
+[data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed{
+ background:#FFFFFF!important}
+.chart-heading{font-size:.88rem;color:#18354C;font-weight:720;margin:0 0 4px}
+.chart-subtitle{font-size:.75rem;color:#30485D;margin:0 0 6px}
+.note-panel{padding:.75rem .95rem;background:#ECF4F7;border:1px solid #DDE8ED;
+ border-radius:10px;color:#233C4F;font-size:.78rem;line-height:1.55;margin:.8rem 0}
+.insight-strip{background:#FFFFFF;border:1px solid #DEE7EF;border-radius:10px;
+ padding:11px 15px;color:#233C4F;font-size:.8rem;margin:10px 0}
+.insight-strip strong{color:#285E88}
+@media(max-width:1120px){
  .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:700px){
- [data-testid="stMain"] .block-container{padding:1rem .85rem 2rem}
- .dashboard-header{flex-direction:column}
+ [data-testid="stMain"] .block-container{padding:.7rem .7rem 2rem}
  .browser-brand-right,.dashboard-chip{display:none}
+ .dashboard-header{align-items:flex-start}
  div[class*="st-key-browser_tabs"] [data-testid="stButton"] button{
-   font-size:.7rem!important;padding:7px 5px!important;gap:4px!important;
-   justify-content:center!important;min-height:53px!important;
- }
- .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:1fr;gap:12px}
- .kpi-card{min-height:116px}
-}
-
-/* Chart card surface: style the keyed container AND the actual outer Streamlit wrapper.
-   Avoid relying on the Altair canvas, which only paints the plot rectangle. */
-[data-testid="stMain"] div[class*="st-key-chart_panel"],
-[data-testid="stMain"] div[class*="st-key-chart_panel"] > div,
-[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]),
-[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]) > div,
-[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]) [data-testid="stVerticalBlock"] {
- background-color:#FFFFFF!important;
- background:#FFFFFF!important;
- background-image:none!important;
-}
-[data-testid="stMain"] div[class*="st-key-chart_panel"] {
- border:1px solid #DFE7F0!important;
- border-radius:14px!important;
- padding:15px 17px!important;
- box-sizing:border-box!important;
- overflow:hidden!important;
- box-shadow:0 2px 10px rgba(27,59,90,.025)!important;
-}
-[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"],
-[data-testid="stMain"] div[class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"] > div,
-[data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed,
-[data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed > div {
- background-color:#FFFFFF!important;
-}
-
-/* Each dashboard has its own restrained accent without sacrificing contrast. */
-div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_10"] button:not([kind="primary"]){
- background:#E6F0FB!important;color:#205985!important;
-}
-div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_11"] button:not([kind="primary"]){
- background:#E3F2F0!important;color:#1C6865!important;
-}
-div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_12"] button:not([kind="primary"]){
- background:#FFF0E3!important;color:#855024!important;
-}
-div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"]{
- color:var(--page-accent)!important;
- box-shadow:inset 0 3px 0 var(--page-accent)!important;
-}
-.dashboard-title-area{border-left-color:var(--page-accent)!important}
-.dashboard-eyebrow{color:var(--page-accent)!important}
-.dashboard-chip{background:var(--page-tint)!important;color:var(--page-accent)!important}
-.panel-heading-title{display:flex;align-items:center;gap:10px}
-.panel-heading-title:before{content:"";height:19px;width:4px;
- border-radius:3px;background:var(--page-accent);display:inline-block}
-.kpi-grid .kpi-card:nth-child(4n+1) .kpi-icon{background:#E7F1FF;color:#246BB5}
-.kpi-grid .kpi-card:nth-child(4n+2) .kpi-icon{background:#FFF0E5;color:#B56B35}
-.kpi-grid .kpi-card:nth-child(4n+3) .kpi-icon{background:#E5F6EE;color:#207C5F}
-.kpi-grid .kpi-card:nth-child(4n+4) .kpi-icon{background:#EFEAFF;color:#7053B5}
-.kpi-card{border-color:#DEE7EF!important;box-shadow:0 4px 14px rgba(24,56,81,.045)}
-.insight-strip{background:#FFFFFF;border:1px solid #DCE5ED;border-left:4px solid var(--page-accent);
- border-radius:10px;padding:12px 17px;margin:12px 0;color:#203A4E;font-size:.82rem}
-.insight-strip strong{color:var(--page-accent)}
-
-/* Neutral card edges — color belongs to charts and icons, not card borders. */
-.dashboard-title-area{border-left:0!important;padding-left:0!important}
-.dashboard-chip{border-color:#DDE6EF!important}
-.panel-heading-title:before{display:none!important}
-.note-panel,.insight-strip{
- border:1px solid #DFE7F0!important;
- border-left:1px solid #DFE7F0!important;
- border-radius:10px!important;
-}
-.kpi-card,[data-testid="stMain"] div[class*="st-key-chart_panel"],
-[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]{
- border-color:#DFE7F0!important;
-}
-div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"]{
- border-color:#DDE6EF!important;
- border-bottom-color:#FFFFFF!important;
- box-shadow:none!important;
+  min-height:45px!important;padding:6px 3px!important;font-size:.69rem!important;gap:3px!important}
+ .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:1fr;gap:11px}
+ .kpi-card{min-height:107px}
 }
 </style>
 """
@@ -255,6 +156,8 @@ ICONS = {
     "check": '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
     "location": '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
     "alert": '<path d="M12 3 2.5 20h19z"/><path d="M12 9v5M12 17h.01"/>',
+    "chart": '<path d="M3 3v18h18"/><path d="M7 15l4-5 4 3 5-7"/>',
+    "table": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/>',
 }
 
 
@@ -317,14 +220,25 @@ def filter_title():
     )
 
 
+
 def section(title, hint=""):
-    """Display only the operational section title, without redundant all-caps notes."""
+    """Section heading with a meaningful, nondecorative icon."""
+    name = "chart"
+    t = title.lower()
+    if any(x in t for x in ("gps", "vị trí", "tuyến", "hành trình", "bản đồ")):
+        name = "route"
+    elif any(x in t for x in ("nhiên liệu", "cảm biến", "cảnh báo", "động cơ")):
+        name = "fuel"
+    elif any(x in t for x in ("phân bổ", "hiệu quả", "xu hướng", "so sánh")):
+        name = "chart"
+    elif any(x in t for x in ("danh sách", "chi tiết", "giao dịch")):
+        name = "table"
     st.markdown(
-        '<div class="panel-heading"><div class="panel-heading-title">' +
-        html.escape(title) + '</div></div>',
+        '<div class="panel-heading"><div class="panel-heading-title">'
+        '<span class="panel-heading-icon">' + icon_svg(name) + '</span>'
+        + html.escape(title) + '</div></div>',
         unsafe_allow_html=True,
     )
-
 
 def metric_card(label, value, detail, icon="truck", accent="#287CF0", tint="#E9F2FF", render=True):
     """Return the card HTML for a responsive grid; render directly if requested."""
