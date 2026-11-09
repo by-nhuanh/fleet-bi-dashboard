@@ -169,6 +169,26 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
 section[data-testid="stSidebar"] [data-testid="stButton"]{
  margin:0!important;
 }
+
+/* Solid white all the way through the chart panel, including title and plot. */
+[data-testid="stMain"] [class*="st-key-chart_panel"]{
+  background-color:#FFFFFF!important;
+  border-radius:14px!important;
+  overflow:hidden!important;
+}
+[data-testid="stMain"] [class*="st-key-chart_panel"] > div,
+[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVerticalBlock"],
+[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stElementContainer"],
+[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"],
+[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"] > div,
+[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stArrowVegaLiteChart"],
+[data-testid="stMain"] [class*="st-key-chart_panel"] canvas {
+  background-color:#FFFFFF!important;
+}
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]){
+  background-color:#FFFFFF!important;
+  border-radius:14px!important;
+}
 </style>
 """
 
