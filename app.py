@@ -63,6 +63,7 @@ location_options = {
 }
 
 with st.container(border=False, key="filter_bar"):
+    filter_title()
     filter_cols = st.columns([1.45, 1.45, 1], gap="medium")
     with filter_cols[0]:
         st.markdown('<div class="filter-label">Khoảng ngày bắt đầu chuyến</div>', unsafe_allow_html=True)
