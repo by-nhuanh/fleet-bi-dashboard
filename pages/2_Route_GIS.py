@@ -38,21 +38,22 @@ def lookups():
 bounds,routes=lookups()
 page_header(11, "Phân tích tuyến đường",
     "Theo dõi hành trình GPS, điểm ghi nhận vận tốc thấp và kết quả vận hành theo tuyến.")
-filter_title()
 
 if bounds[0] is None:
     st.warning("Không tìm thấy bản ghi GPS.")
     st.stop()
 
-col1,col2,col3=st.columns([1.5,1,1])
-with col1:
-    dates=st.date_input("Khoảng ngày GPS",value=(bounds[0],bounds[1]),
-                        min_value=bounds[0],max_value=bounds[1])
-with col2:
-    route=st.selectbox("Tuyến đường",["Tất cả"]+routes)
-with col3:
-    threshold=st.slider("Vận tốc thấp ≤ (km/h)",0,80,20,5,
-                        help="Ngưỡng phân tích do người xem chọn, không phải chứng cứ kẹt xe.")
+with st.container(border=False, key="filter_bar"):
+    col1,col2,col3=st.columns([1.5,1,1])
+    with col1:
+        dates=st.date_input("Khoảng ngày GPS",value=(bounds[0],bounds[1]),
+                            min_value=bounds[0],max_value=bounds[1])
+    with col2:
+        route=st.selectbox("Tuyến đường",["Tất cả"]+routes)
+    with col3:
+        threshold=st.slider("Vận tốc thấp ≤ (km/h)",0,80,20,5,
+                            help="Ngưỡng phân tích do người xem chọn, không phải chứng cứ kẹt xe.")
+
 if len(dates)!=2:
     st.info("Chọn ngày bắt đầu và ngày kết thúc.")
     st.stop()
