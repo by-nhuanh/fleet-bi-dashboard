@@ -149,17 +149,17 @@ def line(data,field,color,y_label):
 
 c1,c2=st.columns(2,gap="large")
 with c1:
-    with st.container(border=True, key="chart_panel_fuel_level"):
+    with st.container(border=False, key="chart_panel_fuel_level"):
         st.markdown("**Mức nhiên liệu trong bình (%)**")
         st.altair_chart(line(display_trace,"fuel_level_pct","#2F9183","Nhiên liệu (%)"),
                         use_container_width=True,theme=None)
 with c2:
-    with st.container(border=True, key="chart_panel_speed"):
+    with st.container(border=False, key="chart_panel_speed"):
         st.markdown("**Vận tốc phương tiện (km/h)**")
         st.altair_chart(line(display_trace,"speed_kmh","#3B85AB","Vận tốc (km/h)"),
                         use_container_width=True,theme=None)
 
-with st.container(border=True, key="chart_panel_engine"):
+with st.container(border=False, key="chart_panel_engine"):
     st.markdown("**Trạng thái động cơ và các điểm cần xác minh**")
     status=display_trace[["point_index","engine_status"]].copy()
     status["engine_status"]=status["engine_status"].fillna("UNKNOWN")
@@ -218,7 +218,7 @@ else:
     )
 
 section("Hướng dẫn phân tích nguyên nhân", "HƯỚNG DẪN XÁC MINH")
-with st.container(border=True, key="chart_panel_decision"):
+with st.container(border=False, key="chart_panel_decision"):
     st.markdown("""
 **Bước 1 – Đối chiếu tín hiệu:** Kiểm tra thứ tự điểm đo, vận tốc, trạng thái động cơ, chênh lệch nhiên liệu và nhãn gốc.
 
