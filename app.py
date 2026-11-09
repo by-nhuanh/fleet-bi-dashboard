@@ -135,6 +135,16 @@ st.markdown("""
 <div class="filter-head"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Bộ lọc dữ liệu</div>
 """, unsafe_allow_html=True)
 
+
+# Navigation between deliverables (visible even when the Streamlit sidebar is collapsed).
+nav1,nav2,nav3=st.columns(3)
+with nav1:
+    st.page_link("app.py",label="01 · Tổng quan vận hành",use_container_width=True)
+with nav2:
+    st.page_link("pages/2_Route_GIS.py",label="02 · GIS & tuyến đường",use_container_width=True)
+with nav3:
+    st.page_link("pages/3_Fuel_Analytics.py",label="03 · Phân tích nhiên liệu",use_container_width=True)
+
 facility_types = sorted(locations["facility_type"].dropna().unique().tolist())
 location_options = {
     f"{r.facility_name} [{r.location_key}]": int(r.location_key)
