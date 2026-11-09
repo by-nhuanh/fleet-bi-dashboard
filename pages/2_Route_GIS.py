@@ -249,7 +249,7 @@ else:
             ).properties(height=360).configure(
                 background="#FFFFFF"
             ).configure_view(stroke=None).configure_axis(
-                labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2"
+                labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2"
             )
             st.altair_chart(chart,use_container_width=True,theme=None)
     with right:
