@@ -12,7 +12,7 @@ st.set_page_config(page_title="Fleet BI | GIS & Routes", page_icon="🗺️", la
 
 DB = Path(__file__).resolve().parents[1] / "database" / "fleet_analysis.duckdb"
 if not DB.exists():
-    st.error("Chưa có database Task 11–12: database/fleet_analysis.duckdb. Cần tải bản xuất từ DDS lên GitHub.")
+    st.error("Chưa tìm thấy cơ sở dữ liệu GPS phục vụ phân tích tuyến đường.")
     st.stop()
 
 setup(11)
@@ -36,8 +36,8 @@ def lookups():
     return dates,routes
 
 bounds,routes=lookups()
-page_header(11, "Phân tích tuyến đường & điểm nghẽn",
-    "Bản đồ GPS, vùng vận tốc thấp và hiệu suất tuyến đường dựa trên dữ liệu DDS.")
+page_header(11, "Phân tích tuyến đường",
+    "Theo dõi hành trình GPS, điểm ghi nhận vận tốc thấp và kết quả vận hành theo tuyến.")
 filter_title()
 
 if bounds[0] is None:
@@ -98,19 +98,19 @@ except Exception as exc:
     st.exception(exc)
     st.stop()
 
-section("Chỉ số GPS", "PHẠM VI CHUYẾN CÓ DỮ LIỆU GPS")
-a,b,c=st.columns(3, gap="medium")
+section("Tổng quan dữ liệu GPS", "PHẠM VI CHUYẾN CÓ DỮ LIỆU GPS")
+a,b,c=st.columns(3, gap="large")
 with a:
-    metric_card("Điểm GPS trong bộ lọc",f"{gps_count:,}",
+    metric_card("Tổng số điểm GPS",f"{gps_count:,}",
                 "Tổng điểm quan sát", "location", "#287CF0", "#E7F1FF")
 with b:
-    metric_card("Chuyến có GPS",f"{trip_count:,}",
+    metric_card("Số chuyến có dữ liệu GPS",f"{trip_count:,}",
                 "Chuyến được quan sát trong DDS", "truck", "#23936F", "#E5F7EE")
 with c:
-    metric_card("Điểm vận tốc thấp",f"{low_count:,}",
+    metric_card("Điểm ghi nhận vận tốc thấp",f"{low_count:,}",
                 f"Vận tốc từ 0 đến {threshold} km/h", "clock", "#C87C56", "#FCEDF0")
 
-section("Bản đồ nhiệt · Điểm vận tốc thấp", "BẢN ĐỒ GPS")
+section("Bản đồ phân bố điểm vận tốc thấp", "VỊ TRÍ GHI NHẬN")
 if spots.empty:
     st.info("Không có điểm GPS phù hợp ngưỡng vận tốc.")
 else:
@@ -157,7 +157,7 @@ def gps_trip_choices(start,end,route_value):
     sql+=" ORDER BY g.trip_id LIMIT 1000"
     return con.execute(sql,values).df()["trip_id"].tolist()
 
-section("Khám phá hành trình theo chuyến", "ĐIỂM GPS QUAN SÁT")
+section("Phân tích hành trình theo chuyến", "ĐIỂM GPS QUAN SÁT")
 available_trips=gps_trip_choices(dates[0],dates[1],route)
 if not available_trips:
     st.info("Không có chuyến GPS trong khoảng thời gian và tuyến đang chọn.")
@@ -233,11 +233,11 @@ def route_performance(start,end,route_value):
     return df
 
 routes_df=route_performance(dates[0],dates[1],route)
-section("Hiệu suất tuyến đường", "SO SÁNH THEO TUYẾN")
+section("Hiệu quả vận hành theo tuyến", "SO SÁNH THEO TUYẾN")
 if routes_df.empty:
     st.info("Không có chuyến thuộc bộ lọc.")
 else:
-    left,right=st.columns([1.25,1])
+    left,right=st.columns([1.25,1],gap="large")
     with left:
         with st.container(border=True):
             st.markdown("**10 tuyến có nhiều chuyến nhất**")
