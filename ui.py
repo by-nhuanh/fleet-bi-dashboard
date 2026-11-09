@@ -251,6 +251,31 @@ section[data-testid="stSidebar"] .nav-footer{
 section[data-testid="stSidebar"] .nav-footer-sub{
  color:#C7D9EA!important;font-size:.71rem!important;
 }
+
+/* The complete bordered chart card is opaque white, not just the Altair canvas.
+   Streamlit applies card/background styles to several nested wrappers. */
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"],
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] > div,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] > div > div,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"],
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stElementContainer"],
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"],
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVegaLiteChart"] > div,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stArrowVegaLiteChart"] {
+  background:#FFFFFF!important;
+  background-color:#FFFFFF!important;
+  background-image:none!important;
+}
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"]{
+  border:1px solid #DFE7F0!important;
+  border-radius:14px!important;
+  overflow:hidden!important;
+}
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] svg.vega-embed,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] .vega-embed,
+[data-testid="stMain"] div[data-testid="stVerticalBlockBorderWrapper"] .vega-embed > div {
+  background:#FFFFFF!important;
+}
 </style>
 """
 
