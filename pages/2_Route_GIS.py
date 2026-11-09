@@ -132,7 +132,7 @@ else:
         ),
         layers=[layer],
         tooltip={"text":"Điểm trong ô: {weight}"},
-    ),use_container_width=True)
+    ),use_container_width=True,height=430)
     st.caption(
         f"Bản đồ tổng hợp {len(spots):,} ô tọa độ (làm tròn 0,01 độ), "
         f"hiển thị tối đa 12.000 ô có nhiều điểm nhất. "
@@ -200,7 +200,7 @@ else:
                 pickable=True,
             )],
             tooltip={"text":"Vận tốc ghi nhận: {speed_kmh} km/h"},
-        ),use_container_width=True)
+        ),use_container_width=True,height=400)
         st.caption(
             f"Chuyến {selected_trip}: {len(gps_trip):,} điểm GPS trong khoảng ngày; "
             f"bản đồ hiển thị {len(gps_map):,} điểm đo thực tế. "
