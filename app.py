@@ -127,7 +127,7 @@ where_clause = " AND ".join(conditions)
 
 cte = f"""
 WITH filtered_trips AS (
-    SELECT t.trip_id, t.is_kpi_eligible, t.delay_minutes, d.year, d.month
+    SELECT t.trip_id, t.is_kpi_eligible, t.delay_minutes, d.year, d.month,\n           origin.facility_name AS origin_facility, v.truck_id
     FROM dds.Fact_Trips t
     JOIN dds.Dim_Date d ON t.start_date_key = d.date_key
     JOIN dds.Dim_Vehicle v ON t.vehicle_key = v.vehicle_key
@@ -277,6 +277,68 @@ with right:
 with st.container(border=False, key="chart_panel_fuel"):
     st.markdown('<div class="chart-heading">Chi phí mua nhiên liệu theo tháng</div><div class="chart-subtitle">Gắn chi phí mua nhiên liệu với ngày bắt đầu của chuyến liên kết</div>', unsafe_allow_html=True)
     st.altair_chart(fuel_chart.properties(height=250), use_container_width=True, theme=None)
+
+# Facility- and vehicle-level breakdowns use exactly the same filtered trip set
+# as the headline KPIs; they must not introduce new assumptions about branches.
+facility_sql = cte + """
+SELECT origin_facility, COUNT(*) AS trips,
+  COUNT(*) FILTER (WHERE is_kpi_eligible=1) AS eligible,
+  COUNT(*) FILTER (WHERE is_kpi_eligible=1 AND delay_minutes>0) AS late
+FROM filtered_trips
+GROUP BY 1 ORDER BY trips DESC, origin_facility LIMIT 8
+"""
+vehicle_sql = cte + """
+SELECT truck_id, COUNT(*) AS trips
+FROM filtered_trips
+GROUP BY 1 ORDER BY trips DESC, truck_id LIMIT 8
+"""
+facility_data = con.execute(facility_sql, params).df()
+vehicle_data = con.execute(vehicle_sql, params).df()
+section("Phân bổ hoạt động theo cơ sở và phương tiện")
+a, b = st.columns(2, gap="large")
+with a:
+    with st.container(border=False, key="chart_panel_facility"):
+        st.markdown('<div class="chart-heading">Cơ sở xuất phát có nhiều chuyến nhất</div>', unsafe_allow_html=True)
+        if facility_data.empty:
+            st.info("Không có dữ liệu phù hợp.")
+        else:
+            chart = alt.Chart(facility_data.sort_values("trips")).mark_bar(
+                color="#347DBC", cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("trips:Q", title="Số chuyến"),
+                y=alt.Y("origin_facility:N", sort=None, title=None),
+                tooltip=[
+                    alt.Tooltip("origin_facility:N", title="Cơ sở"),
+                    alt.Tooltip("trips:Q", title="Số chuyến", format=","),
+                    alt.Tooltip("late:Q", title="Số chuyến trễ", format=","),
+                ]
+            ).properties(height=270).configure(background="#FFFFFF").configure_view(
+                stroke=None
+            ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E7EEF4")
+            st.altair_chart(chart, use_container_width=True, theme=None)
+with b:
+    with st.container(border=False, key="chart_panel_vehicles"):
+        st.markdown('<div class="chart-heading">Phương tiện có nhiều chuyến nhất</div>', unsafe_allow_html=True)
+        if vehicle_data.empty:
+            st.info("Không có dữ liệu phù hợp.")
+        else:
+            chart = alt.Chart(vehicle_data.sort_values("trips")).mark_bar(
+                color="#198E84", cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("trips:Q", title="Số chuyến"),
+                y=alt.Y("truck_id:N", sort=None, title=None),
+                tooltip=["truck_id:N", alt.Tooltip("trips:Q", title="Số chuyến", format=",")]
+            ).properties(height=270).configure(background="#FFFFFF").configure_view(
+                stroke=None
+            ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E7EEF4")
+            st.altair_chart(chart, use_container_width=True, theme=None)
+
+st.markdown(
+    '<div class="insight-strip"><strong>Góc nhìn điều hành:</strong> '
+    'So sánh cơ sở xuất phát và phương tiện giúp nhận diện nơi tập trung nhiều chuyến; '
+    'số chuyến cao không tự động đồng nghĩa với hiệu suất tốt hơn.</div>',
+    unsafe_allow_html=True,
+)
 
 note("Lọc theo ngày bắt đầu chuyến; giao trễ khi chuyến đủ điều kiện và delay_minutes > 0. Chi phí mua nhiên liệu được gắn theo chuyến liên kết, không theo ngày giao dịch mua.")
 
