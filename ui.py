@@ -157,60 +157,114 @@ def icon_svg(name):
 
 
 def setup(page):
-    """Consistent fixed-light design + real, keyboard-accessible navigation."""
+    """Navigation shared across pages. Compact mode renders actual icon buttons."""
     st.markdown(STYLES, unsafe_allow_html=True)
     if "navigation_compact" not in st.session_state:
         st.session_state.navigation_compact = False
+
+    compact = st.session_state.navigation_compact
     with st.sidebar:
         if st.button(
-            "☰  Thu gọn menu" if not st.session_state.navigation_compact else "☰",
+            " " if compact else "Thu gọn thanh điều hướng",
+            icon=":material/left_panel_open:" if compact else ":material/left_panel_close:",
             key="toggle_navigation",
-            help="Thu gọn hoặc mở rộng thanh điều hướng",
+            help="Mở rộng thanh điều hướng" if compact else "Thu gọn thanh điều hướng",
             use_container_width=True,
         ):
-            st.session_state.navigation_compact = not st.session_state.navigation_compact
+            st.session_state.navigation_compact = not compact
             st.rerun()
-        st.markdown(
-            '<div class="nav-brand"><span class="nav-brand-icon">' +
-            icon_svg("truck") +
-            '</span><span><span class="nav-brand-text">Fleet BI<br>Dashboard</span>'
-            '<span class="nav-brand-sub"> OPERATIONS</span></span></div>'
-            '<div class="nav-label">CHUYỂN ĐẾN TRANG</div>',
-            unsafe_allow_html=True,
-        )
-        st.page_link("app.py", label="Tổng quan vận hành", icon=":material/dashboard:", use_container_width=True)
-        st.page_link("pages/2_Route_GIS.py", label="Phân tích tuyến đường", icon=":material/map:", use_container_width=True)
-        st.page_link("pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu", icon=":material/local_gas_station:", use_container_width=True)
-        st.markdown(
-            '<div class="nav-divider"></div><div class="nav-label">DỰ ÁN</div>'
-            '<div class="nav-bottom">Dữ liệu: DDS · DuckDB<br>'
-            'Theo dõi hoạt động vận tải<br>'
-            'Không phải dữ liệu thời gian thực</div>',
-            unsafe_allow_html=True,
-        )
 
-    if st.session_state.navigation_compact:
+        if compact:
+            st.markdown(
+                '<div class="nav-brand compact-brand"><span class="nav-brand-icon">' +
+                icon_svg("truck") + '</span></div>',
+                unsafe_allow_html=True,
+            )
+            pages = [
+                ("app.py", "Tổng quan vận hành", ":material/dashboard:", 10),
+                ("pages/2_Route_GIS.py", "Phân tích tuyến đường", ":material/map:", 11),
+                ("pages/3_Fuel_Analytics.py", "Phân tích nhiên liệu", ":material/local_gas_station:", 12),
+            ]
+            for path, label, icon, page_num in pages:
+                if st.button(
+                    " ",
+                    icon=icon,
+                    key=f"nav_compact_{page_num}",
+                    help=label,
+                    use_container_width=True,
+                    type="primary" if page == page_num else "secondary",
+                ):
+                    st.switch_page(path)
+        else:
+            st.markdown(
+                '<div class="nav-brand"><span class="nav-brand-icon">' +
+                icon_svg("truck") +
+                '</span><span><span class="nav-brand-text">Fleet BI Dashboard</span>'
+                '<span class="nav-brand-sub">Vận hành đội xe</span></span></div>'
+                '<div class="nav-label">DANH MỤC PHÂN TÍCH</div>',
+                unsafe_allow_html=True,
+            )
+            st.page_link(
+                "app.py", label="Tổng quan vận hành",
+                icon=":material/dashboard:", use_container_width=True,
+            )
+            st.page_link(
+                "pages/2_Route_GIS.py", label="Phân tích tuyến đường",
+                icon=":material/map:", use_container_width=True,
+            )
+            st.page_link(
+                "pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu",
+                icon=":material/local_gas_station:", use_container_width=True,
+            )
+            st.markdown(
+                '<div class="nav-divider"></div>'
+                '<div class="nav-bottom">Nguồn dữ liệu: DDS / DuckDB'
+                '<div>Không phải dữ liệu thời gian thực</div></div>',
+                unsafe_allow_html=True,
+            )
+
+    if compact:
         st.markdown("""<style>
-        section[data-testid="stSidebar"]{
-          width:82px!important;min-width:82px!important;max-width:82px!important;
+        section[data-testid="stSidebar"] {
+            width:88px!important;min-width:88px!important;max-width:88px!important;
         }
-        [data-testid="stSidebar"] [data-testid="stSidebarContent"]{
-          width:82px!important;min-width:82px!important;padding-left:9px!important;padding-right:9px!important;
+        section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+            width:88px!important;min-width:88px!important;
+            padding:12px 10px!important;
         }
-        [data-testid="stSidebar"] .nav-brand-text,
-        [data-testid="stSidebar"] .nav-brand-sub,
-        [data-testid="stSidebar"] .nav-label,
-        [data-testid="stSidebar"] .nav-bottom{display:none!important}
-        [data-testid="stSidebar"] .nav-brand{justify-content:center!important;padding:.55rem 0 1rem!important}
-        [data-testid="stSidebar"] [data-testid="stPageLink"] a{
-          font-size:0!important;justify-content:center!important;
-          min-height:50px!important;padding:.55rem!important;gap:0!important;
+        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+            gap:12px!important;
         }
-        [data-testid="stSidebar"] [data-testid="stPageLink"] a *{font-size:0!important}
-        [data-testid="stSidebar"] [data-testid="stPageLink"] a svg{
-          width:22px!important;height:22px!important;flex-shrink:0!important;
+        section[data-testid="stSidebar"] .compact-brand {
+            justify-content:center!important;padding:.35rem 0 .75rem!important;
         }
-        [data-testid="stSidebar"] button[kind="secondary"]{font-size:1.15rem!important}
+        section[data-testid="stSidebar"] .compact-brand .nav-brand-icon {
+            width:44px!important;height:44px!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button {
+            width:58px!important;min-width:58px!important;max-width:58px!important;
+            height:54px!important;min-height:54px!important;
+            border-radius:13px!important;
+            display:flex!important;align-items:center!important;justify-content:center!important;
+            padding:0!important;box-shadow:none!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button p {
+            margin:0!important;line-height:0!important;font-size:0!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button span[data-testid="stIconMaterial"],
+        section[data-testid="stSidebar"] [data-testid="stButton"] button [data-testid="stIconMaterial"] {
+            font-size:25px!important;line-height:1!important;color:#FFFFFF!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"] {
+            background:#2683EF!important;border:1px solid #80BBFF!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="secondary"] {
+            background:rgba(255,255,255,.075)!important;
+            border:1px solid rgba(213,232,248,.16)!important;
+        }
+        section[data-testid="stSidebar"] [data-testid="stButton"] button:hover {
+            background:#296B9C!important;border-color:#90C5F6!important;
+        }
         </style>""",unsafe_allow_html=True)
 
 
