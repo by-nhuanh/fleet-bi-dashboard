@@ -154,6 +154,73 @@ else:
     )
 
 @st.cache_data(ttl=600)
+def gps_trip_choices(start,end,route_value):
+    sql="""
+        SELECT DISTINCT g.trip_id
+        FROM dds.Fact_GPS_Points g
+        JOIN dds.Dim_Date d ON g.date_key=d.date_key
+        JOIN dds.Fact_Trips t ON g.trip_id=t.trip_id
+        JOIN dds.Dim_Route r ON t.route_key=r.route_key
+        WHERE d.full_date BETWEEN ? AND ?
+    """
+    values=[start,end]
+    if route_value!="Tất cả":
+        sql+=" AND r.route_id=?"
+        values.append(route_value)
+    sql+=" ORDER BY g.trip_id LIMIT 1000"
+    return con.execute(sql,values).df()["trip_id"].tolist()
+
+st.markdown('<div class="sec">Điểm GPS theo hành trình của một chuyến</div>',unsafe_allow_html=True)
+available_trips=gps_trip_choices(dates[0],dates[1],route)
+if not available_trips:
+    st.info("Không có chuyến GPS trong khoảng thời gian và tuyến đang chọn.")
+else:
+    selected_trip=st.selectbox("Chọn chuyến có GPS",available_trips,key="route_trip")
+    @st.cache_data(ttl=600)
+    def trip_points(trip_id,start,end):
+        return con.execute("""
+            SELECT g.latitude,g.longitude,g.speed_kmh,
+                   d.full_date,tm.hour_24,tm.minute
+            FROM dds.Fact_GPS_Points g
+            JOIN dds.Dim_Date d ON g.date_key=d.date_key
+            JOIN dds.Dim_Time tm ON g.time_key=tm.time_key
+            WHERE g.trip_id=? AND d.full_date BETWEEN ? AND ?
+              AND g.latitude BETWEEN -90 AND 90
+              AND g.longitude BETWEEN -180 AND 180
+            ORDER BY d.full_date,tm.hour_24,tm.minute,g.message_id
+        """,[trip_id,start,end]).df()
+    gps_trip=trip_points(selected_trip,dates[0],dates[1])
+    if gps_trip.empty:
+        st.info("Không có tọa độ GPS hợp lệ trong khoảng thời gian đã chọn.")
+    else:
+        if len(gps_trip)>3000:
+            sample_step=max(1,(len(gps_trip)+2999)//3000)
+            gps_map=gps_trip.iloc[::sample_step].copy()
+        else:
+            gps_map=gps_trip
+        st.pydeck_chart(pdk.Deck(
+            map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+            initial_view_state=pdk.ViewState(
+                latitude=float(gps_map["latitude"].mean()),
+                longitude=float(gps_map["longitude"].mean()),
+                zoom=4.2,pitch=0,
+            ),
+            layers=[pdk.Layer(
+                "ScatterplotLayer",data=gps_map,
+                get_position="[longitude, latitude]",
+                get_fill_color=[44,132,159,145],
+                get_radius=350,
+                pickable=True,
+            )],
+            tooltip={"text":"Vận tốc ghi nhận: {speed_kmh} km/h"},
+        ),use_container_width=True)
+        st.caption(
+            f"Chuyến {selected_trip}: {len(gps_trip):,} điểm GPS trong khoảng ngày; "
+            f"bản đồ hiển thị {len(gps_map):,} điểm đo thực tế. "
+            "Các dấu chấm là vị trí ghi nhận, không suy ra tuyến đường được quy hoạch."
+        )
+
+@st.cache_data(ttl=600)
 def route_performance(start,end,route_value):
     sql="""
       SELECT r.route_id,r.origin_city,r.destination_city,
