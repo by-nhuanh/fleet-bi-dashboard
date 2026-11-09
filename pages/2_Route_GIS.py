@@ -141,14 +141,15 @@ else:
 # GPS hotspots are observation-density cells, not verified traffic congestion.
 if not spots.empty:
     section("Vị trí có nhiều điểm vận tốc thấp")
-    with st.container(border=False, key="chart_panel_hotspots"):
-        top_hotspots = spots.head(10).copy()
-        top_hotspots["position"] = (
-            top_hotspots["latitude"].map(lambda n: f"{n:.2f}") + ", " +
-            top_hotspots["longitude"].map(lambda n: f"{n:.2f}")
-        )
-        left_hot, right_hot = st.columns([1.45, 1], gap="large")
-        with left_hot:
+    top_hotspots = spots.head(10).copy()
+    top_hotspots["position"] = (
+        top_hotspots["latitude"].map(lambda n: f"{n:.2f}") + ", " +
+        top_hotspots["longitude"].map(lambda n: f"{n:.2f}")
+    )
+    left_hot, right_hot = st.columns([1.25, 1], gap="large")
+    with left_hot:
+        with st.container(border=False, key="chart_panel_hotspot_ranking"):
+            st.markdown('<div class="chart-heading">10 ô tọa độ có nhiều điểm GPS vận tốc thấp</div>', unsafe_allow_html=True)
             chart_hot = alt.Chart(top_hotspots.sort_values("weight")).mark_bar(
                 color="#168D87", cornerRadiusEnd=4
             ).encode(
@@ -158,23 +159,24 @@ if not spots.empty:
                     alt.Tooltip("position:N", title="Vị trí (vĩ độ, kinh độ)"),
                     alt.Tooltip("weight:Q", title="Số điểm", format=",")
                 ]
-            ).properties(height=290).configure(
+            ).properties(height=300).configure(
                 background="#FFFFFF"
             ).configure_view(stroke=None).configure_axis(
                 labelColor="#172D43",titleColor="#172D43",gridColor="#E6EEF2"
             )
             st.altair_chart(chart_hot, use_container_width=True, theme=None)
-        with right_hot:
-            st.markdown("**10 ô tọa độ có nhiều ghi nhận nhất**")
+    with right_hot:
+        with st.container(border=False, key="chart_panel_hotspot_table"):
+            st.markdown('<div class="chart-heading">Bảng vị trí ưu tiên rà soát</div>', unsafe_allow_html=True)
             st.dataframe(
                 top_hotspots[["position", "weight"]].rename(columns={
                     "position":"Vĩ độ, kinh độ", "weight":"Điểm vận tốc thấp"
-                }),use_container_width=True,hide_index=True,height=320,
+                }), use_container_width=True, hide_index=True, height=345,
             )
-        st.caption(
-            "Mỗi ô là tọa độ làm tròn 0,01 độ; giá trị thể hiện số lần ghi nhận GPS, "
-            "không phải số vụ ùn tắc hoặc số xe khác nhau."
-        )
+    st.caption(
+        "Ô tọa độ được làm tròn 0,01 độ; thống kê theo số lần ghi nhận GPS, "
+        "không phải số xe khác nhau hoặc số vụ ùn tắc."
+    )
 
 @st.cache_data(ttl=600)
 def gps_trip_choices(start,end,route_value):
@@ -299,5 +301,43 @@ else:
                 "late_rate_pct":"Trễ (%)"
             })
             st.dataframe(display,use_container_width=True,hide_index=True,height=390)
+
+# Compare late delivery using the eligible-trip denominator, never all trips.
+if not routes_df.empty:
+    eligible_routes = routes_df[
+        (routes_df["eligible"] > 0) & routes_df["late_rate_pct"].notna()
+    ].copy()
+    eligible_routes = eligible_routes.sort_values(
+        ["eligible", "route_id"], ascending=[False, True]
+    ).head(10)
+    section("Tỷ lệ giao hàng trễ theo tuyến")
+    with st.container(border=False, key="chart_panel_route_late"):
+        if eligible_routes.empty:
+            st.info("Không có tuyến có chuyến đủ điều kiện đánh giá.")
+        else:
+            chart_late = alt.Chart(eligible_routes.sort_values("late_rate_pct")).mark_bar(
+                color="#CD8755", cornerRadiusEnd=4
+            ).encode(
+                x=alt.X("late_rate_pct:Q", title="Tỷ lệ giao trễ (%)",
+                        scale=alt.Scale(domain=[0,100])),
+                y=alt.Y("route_name:N", sort=None, title=None),
+                tooltip=[
+                    alt.Tooltip("route_id:N", title="Mã tuyến"),
+                    alt.Tooltip("eligible:Q", title="Chuyến đủ điều kiện", format=","),
+                    alt.Tooltip("late:Q", title="Chuyến giao trễ", format=","),
+                    alt.Tooltip("late_rate_pct:Q", title="Tỷ lệ trễ (%)", format=".2f"),
+                ],
+            ).properties(height=315).configure(
+                background="#FFFFFF"
+            ).configure_view(stroke=None).configure_axis(
+                labelColor="#172D43", titleColor="#172D43", gridColor="#E6EEF2"
+            )
+            st.altair_chart(chart_late, use_container_width=True, theme=None)
+            st.caption(
+                "Hiển thị tối đa 10 tuyến có nhiều chuyến đủ điều kiện đánh giá nhất. "
+                "Tỷ lệ trễ = chuyến đủ điều kiện có delay_minutes > 0 / "
+                "tổng chuyến đủ điều kiện theo tuyến. "
+                "Không diễn giải tuyến ít mẫu như kết luận chất lượng dịch vụ."
+            )
 
 note("Điểm GPS có vận tốc thấp gần cơ sở có thể liên quan hoạt động bốc dỡ hoặc dừng chờ. Điểm chậm trên đường là tín hiệu cần kiểm tra, không chứng minh ùn tắc giao thông.")
