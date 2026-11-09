@@ -155,39 +155,29 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 [data-testid="stSidebar"] button[kind="secondary"]:hover{background:#317EC0!important}
 
 
-/* Sidebar content remains top-aligned; no vertical centering. */
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"] > div,
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
- display:flex!important;flex-direction:column!important;
- justify-content:flex-start!important;align-items:stretch!important;
- align-content:flex-start!important;
+/* Keep native Streamlit block layout; flex overrides cause oversized sidebar gaps. */
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+  padding:10px 14px 16px!important;
 }
 section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
- gap:9px!important;margin-top:0!important;
+  gap:8px!important;
 }
-section[data-testid="stSidebar"] [data-testid="stButton"]{
- margin:0!important;
+section[data-testid="stSidebar"] .nav-brand{
+  display:grid!important;grid-template-columns:40px minmax(0,1fr)!important;
+  align-items:center!important;gap:10px!important;
+  padding:6px 0 12px!important;min-width:0!important;
 }
-
-/* Solid white all the way through the chart panel, including title and plot. */
-[data-testid="stMain"] [class*="st-key-chart_panel"]{
-  background-color:#FFFFFF!important;
-  border-radius:14px!important;
-  overflow:hidden!important;
+section[data-testid="stSidebar"] .nav-brand-icon{width:40px!important;height:40px!important}
+section[data-testid="stSidebar"] .nav-brand-text{
+  display:block!important;font-size:.92rem!important;line-height:1.22!important;
+  white-space:normal!important;overflow-wrap:break-word!important;
 }
-[data-testid="stMain"] [class*="st-key-chart_panel"] > div,
-[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVerticalBlock"],
-[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stElementContainer"],
-[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"],
-[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stVegaLiteChart"] > div,
-[data-testid="stMain"] [class*="st-key-chart_panel"] [data-testid="stArrowVegaLiteChart"],
-[data-testid="stMain"] [class*="st-key-chart_panel"] canvas {
-  background-color:#FFFFFF!important;
+section[data-testid="stSidebar"] .nav-brand-sub{display:block!important;font-size:.68rem!important;margin-top:4px!important}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a{
+  min-height:46px!important;padding:9px 11px!important;
 }
-[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"]:has([class*="st-key-chart_panel"]){
-  background-color:#FFFFFF!important;
-  border-radius:14px!important;
+section[data-testid="stSidebar"] [data-testid="stButton"] button{
+  min-height:38px!important;font-size:.8rem!important;
 }
 </style>
 """
@@ -287,7 +277,7 @@ def setup(page):
             gap:12px!important;
         }
         section[data-testid="stSidebar"] .compact-brand {
-            justify-content:center!important;padding:.35rem 0 .75rem!important;
+            display:flex!important;justify-content:center!important;padding:.35rem 0 .75rem!important;
         }
         section[data-testid="stSidebar"] .compact-brand .nav-brand-icon {
             width:44px!important;height:44px!important;
