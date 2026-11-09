@@ -1,37 +1,129 @@
-# Fleet BI — Logistics Operations Analytics
+# Fleet BI Dashboard — Phân tích vận hành đội xe
 
-Streamlit dashboard for Task 10–12, using original DDS DuckDB (no generated KPI values).
+Ứng dụng **Business Intelligence cho vận tải và quản lý đội xe** được xây dựng bằng **Python, Streamlit và DuckDB**, sử dụng dữ liệu từ tầng **Dimensional Data Store (DDS)** của đồ án.
 
-## Pages
-- **Task 10 — Overview** (`app.py`): trip count, late-delivery rate, fuel-purchase cost; start-date, origin facility (operational branch proxy), vehicle, origin type and destination filters.
-- **Task 11 — Route GIS** (`pages/2_Route_GIS.py`): observed GPS location heatmap, operator-selected low-speed threshold, route trip volume and late rates. Slow GPS points are *not* proof of traffic congestion.
-- **Task 12 — Fuel Analytics** (`pages/3_Fuel_Analytics.py`): individual-trip fuel and speed traces, engine status, recorded anomaly labels and a diagnostic decision guide. Labels are **not** proven fraud or mechanical defects.
+**Dashboard trực tuyến:** https://fleet-bi-dashboard.streamlit.app/  
+**Mã nguồn:** https://github.com/by-nhuanh/fleet-bi-dashboard
 
-## Data
-- `database/fleet_dw.duckdb`: compact DDS for Overview (85,410 trips, 77,959 KPI eligible, 51,970 late, USD 95,592,992.04 in linked fuel purchases).
-- `database/fleet_analysis.duckdb`: compact DDS for GIS/Fuel, produced from original shared-project database using `scripts/export_analysis_db.py`. Expected 1,435,571 GPS points covering 746 trips; about 61.51 MiB. Upload this separately from the original large warehouse file.
-- The analytics app does not represent live vehicle telemetry.
+> Dashboard phục vụ phân tích dữ liệu lịch sử, **không phải hệ thống giám sát GPS thời gian thực**. Dữ liệu và biểu đồ được truy vấn từ các cơ sở dữ liệu DDS trong repository, không tự tạo số liệu minh họa.
 
-## Definitions and limitations
-- Late delivery rate: **count of eligible trips where delay_minutes > 0 / count of eligible trips**. No use of `is_late_delivery` flag.
-- Fuel purchase cost in Overview is tied to **trip start date** via `trip_id`, not fuel transaction date.
-- There is no independently validated `branch` dimension. **Origin operational facility** is used as a *proxy* for site-level filtering, clearly labelled as such.
-- GPS covers **746 of 85,410 trips**, so GIS/Fuel insights only apply to trips with telemetry.
-- Task 12 decision logic is a guide to testing hypotheses. Automated root-cause classification would require approved fuel-change thresholds and validation evidence.
+## 1. Các trang phân tích
 
-## Local launch
+| Trang | Nội dung chính | File |
+| --- | --- | --- |
+| **Tổng quan vận hành** | KPI chuyến đi, tỷ lệ giao hàng trễ, chi phí mua nhiên liệu, xu hướng tháng; phân bổ chuyến theo cơ sở xuất phát và phương tiện | `app.py` |
+| **Phân tích tuyến đường** | Bản đồ mật độ GPS vận tốc thấp, bản đồ GPS theo chuyến, các vị trí ưu tiên rà soát, so sánh số chuyến và tỷ lệ giao trễ theo tuyến | `pages/2_Route_GIS.py` |
+| **Phân tích nhiên liệu** | Diễn biến mức nhiên liệu, vận tốc và trạng thái động cơ; biểu đồ tín hiệu đối chiếu; nhãn cảnh báo, giao dịch nhiên liệu liên kết và danh sách phương tiện cần kiểm tra | `pages/3_Fuel_Analytics.py` |
+
+Ứng dụng có **thanh chuyển trang phía trên**, thiết kế sáng cố định; các lựa chọn lọc thay đổi phạm vi của biểu đồ và chỉ số tương ứng. Chi tiết các bộ lọc được trình bày trực tiếp trong từng trang.
+
+## 2. Công nghệ và kiến trúc
+
+- **Streamlit:** giao diện, điều hướng, bộ lọc và hiển thị bảng/biểu đồ.
+- **DuckDB:** truy vấn dữ liệu DDS tại chỗ, ở chế độ `read_only`.
+- **Altair:** trực quan hóa KPI, xu hướng, phân bổ và chuỗi cảm biến.
+- **PyDeck:** bản đồ điểm GPS và bản đồ mật độ.
+- **GitHub:** quản lý phiên bản; **Streamlit Community Cloud:** triển khai ứng dụng web.
+
+Luồng xử lý: **DDS DuckDB → truy vấn SQL theo bộ lọc → tính chỉ số/tập dữ liệu → Streamlit/Altair/PyDeck → Dashboard**.
+
+### Nguồn dữ liệu triển khai
+
+| File | Công dụng |
+| --- | --- |
+| `database/fleet_dw.duckdb` | Trang Tổng quan vận hành |
+| `database/fleet_analysis.duckdb` | Trang Tuyến đường và Nhiên liệu (bao gồm `Fact_GPS_Points`) |
+
+Các database là **bản trích từ DDS** để triển khai, không thay thế kho dữ liệu gốc được xây dựng trong các pipeline ETL. Script `scripts/export_analysis_db.py` hỗ trợ tạo bản dữ liệu phân tích từ DDS gốc; không ghi đè file nguồn.
+
+## 3. Công thức KPI và nguyên tắc đối soát
+
+**Số chuyến đi** = `COUNT(*)` trên `dds.Fact_Trips` trong phạm vi lọc.
+
+**Chuyến đủ điều kiện đánh giá** = số chuyến có `is_kpi_eligible = 1`.
+
+**Tỷ lệ giao hàng trễ** =
+
+```text
+Số chuyến thỏa is_kpi_eligible = 1 AND delay_minutes > 0
+---------------------------------------------------------------- × 100%
+Số chuyến thỏa is_kpi_eligible = 1
+```
+
+**Chi phí mua nhiên liệu** = tổng `total_cost_usd` của các giao dịch `dds.Fact_Fuel_Purchases` liên kết với chuyến qua `trip_id`. Khi phân tích theo tháng, chi phí được quy về **tháng bắt đầu chuyến**, không phải tháng mua nhiên liệu.
+
+Các giá trị tham chiếu đã được đối soát cho phạm vi chuyến toàn kỳ:
+
+| Chỉ số | Giá trị |
+| --- | ---: |
+| Tổng số chuyến | 85.410 |
+| Chuyến đủ điều kiện | 77.959 |
+| Chuyến giao trễ đủ điều kiện | 51.970 |
+| Tỷ lệ giao trễ | 66,66% |
+| Tổng chi phí mua nhiên liệu | 95.592.992,04 USD |
+| Giao dịch mua nhiên liệu | 196.442 |
+| Điểm GPS | 1.435.571 |
+| Chuyến có dữ liệu GPS | 746 |
+
+**Lưu ý:** Các giá trị trên là mốc đối soát toàn kỳ, **không phải số cố định** khi người xem áp dụng bộ lọc. Trang GIS/Fuel chỉ phân tích các chuyến có dữ liệu GPS; không suy rộng kết luận cho toàn bộ chuyến.
+
+### Quy ước nghiệp vụ và giới hạn
+
+- **Cơ sở xuất phát:** sử dụng `Dim_Location` để phân nhóm hoạt động tại cơ sở; dữ liệu chưa chứng minh có một chiều **chi nhánh tổ chức** độc lập.
+- **Vận tốc thấp:** ngưỡng do người xem chọn; nhiều điểm tốc độ thấp **không tự động chứng minh ùn tắc**. Ô tọa độ làm tròn là thống kê mật độ điểm ghi nhận, không phải số sự cố giao thông.
+- **Cảnh báo nhiên liệu:** các nhãn `FUEL_THEFT`, `IDLE_EXTENDED`, `FUEL_RECEIPT_MISMATCH`… là tín hiệu có sẵn trong dữ liệu, **không phải kết luận gian lận/hỏng hóc đã được xác minh**. Việc phân loại nguyên nhân tự động cần ngưỡng được phê duyệt và kiểm định.
+- **Dữ liệu GPS:** có 746 chuyến ghi nhận GPS trên 85.410 chuyến trong kho; diễn giải phải ghi rõ giới hạn bao phủ.
+
+## 4. Cấu trúc repository
+
+```text
+fleet-bi-dashboard/
+├── app.py                         # Trang Tổng quan
+├── ui.py                          # Giao diện dùng chung và điều hướng
+├── pages/
+│   ├── 2_Route_GIS.py             # Phân tích tuyến đường
+│   └── 3_Fuel_Analytics.py        # Phân tích nhiên liệu
+├── database/
+│   ├── fleet_dw.duckdb            # DDS triển khai Overview
+│   └── fleet_analysis.duckdb      # DDS triển khai GIS/Fuel
+├── .streamlit/config.toml         # Cấu hình màu sắc
+├── scripts/export_analysis_db.py  # Script xuất DDS rút gọn
+├── tests/                         # Kiểm thử KPI, quan hệ dữ liệu, giao diện
+├── .github/workflows/validate.yml # GitHub Actions validation
+├── requirements.txt
+└── README.md
+```
+
+## 5. Chạy ứng dụng trên máy
+
+Cần Python và hai file DuckDB trong thư mục `database/`.
+
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/by-nhuanh/fleet-bi-dashboard.git
+cd fleet-bi-dashboard
+python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Automated acceptance checks
+Mở địa chỉ localhost mà Streamlit hiển thị trong terminal. Để triển khai trên Streamlit Community Cloud, chọn repository này, nhánh `main`, file khởi chạy `app.py`. Website hiện tại: **https://fleet-bi-dashboard.streamlit.app/**.
+
+## 6. Kiểm thử và lưu ý bàn giao
+
+Chạy:
+
 ```bash
+python -m compileall -q app.py ui.py pages tests
 python -m unittest discover -s tests -v
 ```
-GitHub Actions runs the test suite and Python syntax checks on every push to `main`. Only passing runs provide evidence of validation; merely committing test files does not.
 
-## Deliverables
-- Dashboard: https://fleet-bi-dashboard.streamlit.app/
-- Source code, README, and test suite in this repository.
-- Screenshots for chapter 4.1–4.4 should be captured from the deployed real-data dashboard after validation.
+Thư mục `tests/` chứa kiểm tra KPI, liên kết bảng DDS, GPS và kiểm thử mở các trang Streamlit. Workflow `.github/workflows/validate.yml` được cấu hình để kiểm tra khi cập nhật nhánh `main`. **Sự tồn tại của workflow không chứng minh các lần chạy đều thành công**; cần xem trạng thái thực tế trong GitHub Actions.
+
+### Thông tin cần dùng khi viết báo cáo đồ án
+
+- **Môi trường:** Streamlit + Python + DuckDB + Altair + PyDeck; mô hình truy vấn dữ liệu DDS.
+- **Trang 1:** định nghĩa KPI, công thức giao trễ, các bộ lọc, xu hướng và phân tích theo cơ sở/phương tiện.
+- **Trang 2:** luồng GPS–tuyến đường, bản đồ nhiệt, so sánh tuyến, điểm cần rà soát và giới hạn suy luận về ùn tắc.
+- **Trang 3:** chuỗi nhiên liệu–vận tốc–trạng thái động cơ, cảnh báo và đối chiếu giao dịch, ranh giới giữa *dấu hiệu* và *kết luận nguyên nhân*.
+- **Minh chứng:** dùng ảnh chụp trực tiếp từ Dashboard với bộ lọc được ghi rõ và kết quả kiểm thử thực tế; không thay ảnh/số bằng dữ liệu minh họa.
+
+**Lưu ý về phạm vi công nghệ:** Sản phẩm hiện là **ứng dụng Streamlit**, không phải file Power BI `.pbix`. Báo cáo phải phản ánh đúng hình thức triển khai này.
