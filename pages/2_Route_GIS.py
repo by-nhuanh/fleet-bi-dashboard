@@ -28,6 +28,16 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{background:#F
 <small style="float:right">TASK 11 · GIS DASHBOARD</small></div>
 """,unsafe_allow_html=True)
 
+
+# Navigation between deliverables (visible even when the Streamlit sidebar is collapsed).
+nav1,nav2,nav3=st.columns(3)
+with nav1:
+    st.page_link("app.py",label="01 · Tổng quan vận hành",use_container_width=True)
+with nav2:
+    st.page_link("pages/2_Route_GIS.py",label="02 · GIS & tuyến đường",use_container_width=True)
+with nav3:
+    st.page_link("pages/3_Fuel_Analytics.py",label="03 · Phân tích nhiên liệu",use_container_width=True)
+
 @st.cache_resource
 def connect():
     return duckdb.connect(str(DB),read_only=True)
