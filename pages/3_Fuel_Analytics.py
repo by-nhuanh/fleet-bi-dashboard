@@ -10,7 +10,7 @@ from ui import setup, page_header, filter_title, section, metric_card, note
 st.set_page_config(page_title="Fleet BI | Fuel Diagnostics",page_icon="⛽",layout="wide",initial_sidebar_state="expanded")
 DB=Path(__file__).resolve().parents[1]/"database"/"fleet_analysis.duckdb"
 if not DB.is_file():
-    st.error("Chưa có database/fleet_analysis.duckdb. Hãy bổ sung bản dữ liệu GPS đã xuất từ DDS.")
+    st.error("Chưa tìm thấy cơ sở dữ liệu cảm biến phục vụ phân tích nhiên liệu.")
     st.stop()
 
 setup(12)
@@ -40,20 +40,20 @@ if options.empty:
     st.warning("Chưa có chuyến có dữ liệu GPS.")
     st.stop()
 
-page_header(12, "Chẩn đoán bất thường nhiên liệu",
-    "Đối chiếu nhiên liệu, vận tốc, trạng thái động cơ và các nhãn ghi nhận từ DDS.")
+page_header(12, "Phân tích nhiên liệu",
+    "Theo dõi mức nhiên liệu, vận tốc, trạng thái động cơ và các dấu hiệu cần xác minh.")
 
-section("Tổng quan cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
-a,b,c=st.columns(3, gap="medium")
+section("Tổng quan dữ liệu cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
+a,b,c=st.columns(3, gap="large")
 with a:
     metric_card("Chuyến có dữ liệu GPS",f"{len(options):,}",
                 "Chuyến có bản ghi cảm biến", "truck", "#287CF0", "#E7F1FF")
 with b:
-    metric_card("Chuyến có nhãn cần kiểm tra",f"{(options.flagged_points>0).sum():,}",
-                "Không đồng nghĩa đã xác nhận sự cố", "alert", "#C87C56", "#FCEDF0")
+    metric_card("Chuyến có cảnh báo cần xác minh",f"{(options.flagged_points>0).sum():,}",
+                "Các chuyến có tín hiệu cần rà soát", "alert", "#C87C56", "#FCEDF0")
 with c:
-    metric_card("Điểm GPS có nhãn",f"{options.flagged_points.sum():,}",
-                "Bao gồm các nhãn bất thường DDS", "location", "#7467B6", "#F0EDFB")
+    metric_card("Điểm GPS mang nhãn cảnh báo",f"{options.flagged_points.sum():,}",
+                "Số điểm có nhãn cần theo dõi", "location", "#7467B6", "#F0EDFB")
 
 @st.cache_data(ttl=600)
 def get_labels():
@@ -69,7 +69,7 @@ def get_labels():
 with st.expander("Phân bố nhãn bất thường gốc trong DDS",expanded=False):
     st.dataframe(get_labels(),hide_index=True,use_container_width=True)
 
-section("Phân tích chi tiết chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
+section("Phân tích chi tiết theo chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
 index_options={row.trip_id:row for row in options.itertuples()}
 left,right=st.columns([2,1])
@@ -125,7 +125,7 @@ if len(trace)>point_limit:
     st.caption(f"Chuỗi có {len(trace):,} điểm; biểu đồ hiển thị {len(display_trace):,} "
                "điểm thực (lấy mẫu theo thứ tự và luôn giữ điểm có nhãn).")
 
-section("Diễn biến cảm biến", "NHIÊN LIỆU · VẬN TỐC · ĐỘNG CƠ")
+section("Diễn biến nhiên liệu và vận tốc", "NHIÊN LIỆU · VẬN TỐC · ĐỘNG CƠ")
 st.caption("Dữ liệu thời gian trong bản DDS triển khai có độ phân giải đến phút. "
            "Trục ngang dùng thứ tự điểm đo để tránh gộp các bản ghi cùng phút.")
 
@@ -147,7 +147,7 @@ def line(data,field,color,y_label):
         labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2"
     )
 
-c1,c2=st.columns(2)
+c1,c2=st.columns(2,gap="large")
 with c1:
     with st.container(border=True):
         st.markdown("**Mức nhiên liệu trong bình (%)**")
@@ -189,19 +189,19 @@ def get_flagged_vehicles():
     """).df()
 
 flagged_vehicles=get_flagged_vehicles()
-section("Danh sách xe có nhãn cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
+section("Danh sách phương tiện cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
 st.caption("Danh sách tổng hợp toàn đội xe trong dữ liệu GPS, không phụ thuộc chuyến đang chọn. "
            "Nhãn FUEL_THEFT chỉ là dấu hiệu cần kiểm tra, chưa chứng minh hành vi gian lận.")
 if flagged_vehicles.empty:
     st.info("Không tìm thấy xe có nhãn nhiên liệu hoặc nổ máy chờ.")
 else:
     st.dataframe(flagged_vehicles.rename(columns={
-        "vehicle_id":"Mã xe","recorded_label":"Nhãn gốc DDS",
+        "vehicle_id":"Mã xe","recorded_label":"Nhãn ghi nhận",
         "flagged_points":"Điểm có nhãn","affected_trips":"Chuyến liên quan",
     }),hide_index=True,use_container_width=True)
 
 
-section("Chi tiết điểm có nhãn", "ĐỐI SOÁT BẢN GHI GPS")
+section("Danh sách điểm cảnh báo", "ĐỐI SOÁT BẢN GHI GPS")
 if flagged.empty:
     st.info("Không có điểm được gắn nhãn bất thường trong chuyến này.")
 else:
@@ -211,13 +211,13 @@ else:
             "speed_kmh","engine_status","fuel_level_pct",
             "fuel_liters_remaining"
         ]].rename(columns={
-            "event_minute":"Thời gian","message_id":"ID điểm","anomaly_type":"Nhãn DDS",
+            "event_minute":"Thời gian","message_id":"ID điểm","anomaly_type":"Nhãn ghi nhận",
             "speed_kmh":"Vận tốc (km/h)","engine_status":"Động cơ",
             "fuel_level_pct":"Nhiên liệu (%)","fuel_liters_remaining":"Nhiên liệu (L)"
         }),use_container_width=True,hide_index=True
     )
 
-section("Cây quyết định hỗ trợ chẩn đoán", "HƯỚNG DẪN XÁC MINH")
+section("Hướng dẫn phân tích nguyên nhân", "HƯỚNG DẪN XÁC MINH")
 with st.container(border=True):
     st.markdown("""
 **Bước 1 – Đối chiếu tín hiệu:** Kiểm tra thứ tự điểm đo, vận tốc, trạng thái động cơ, chênh lệch nhiên liệu và nhãn gốc.
