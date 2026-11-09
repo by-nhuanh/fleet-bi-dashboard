@@ -179,6 +179,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 
 /* Force readable light surfaces regardless of browser/OS theme. */
+.hero, .hero *, .hero span { color: #f0f8f7 !important; }
 [data-testid="stApp"], [data-testid="stAppViewContainer"], .main {
     background-color: #f3f7f7 !important;
     color: #213449 !important;
