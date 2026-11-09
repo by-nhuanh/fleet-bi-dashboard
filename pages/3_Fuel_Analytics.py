@@ -144,7 +144,7 @@ def line(data,field,color,y_label):
     ).properties(height=240).configure(
         background="#FFFFFF"
     ).configure_view(stroke=None).configure_axis(
-        labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2"
+        labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2"
     )
 
 c1,c2=st.columns(2,gap="large")
@@ -169,7 +169,7 @@ with st.container(border=True):
         tooltip=["point_index:Q","engine_status:N"]
     ).properties(height=145).configure(background="#FFFFFF").configure_view(
         stroke=None
-    ).configure_axis(labelColor="#294459",titleColor="#294459",gridColor="#E6EEF2")
+    ).configure_axis(labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2")
     st.altair_chart(engine_chart,use_container_width=True,theme=None)
 
 @st.cache_data(ttl=600)
