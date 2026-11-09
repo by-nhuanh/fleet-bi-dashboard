@@ -278,6 +278,41 @@ with st.container(border=False, key="chart_panel_sensor_comparison"):
     )
     st.altair_chart(aligned, use_container_width=True, theme=None)
 
+# Source purchase transactions for the selected trip: cross-check evidence only.
+@st.cache_data(ttl=600)
+def trip_fuel_purchases(trip_id):
+    return con.execute("""
+        SELECT f.fuel_purchase_id, d.full_date AS purchase_date,
+               f.liters_purchased, f.total_cost_usd, v.truck_id AS purchase_vehicle
+        FROM dds.Fact_Fuel_Purchases f
+        LEFT JOIN dds.Dim_Date d ON f.date_key=d.date_key
+        LEFT JOIN dds.Dim_Vehicle v ON f.vehicle_key=v.vehicle_key
+        WHERE f.trip_id=?
+        ORDER BY d.full_date,f.fuel_purchase_id
+    """,[trip_id]).df()
+
+purchases=trip_fuel_purchases(trip)
+section("Đối chiếu giao dịch mua nhiên liệu của chuyến")
+with st.container(border=False, key="chart_panel_fuel_purchases"):
+    if purchases.empty:
+        st.info("Chuyến này chưa có giao dịch mua nhiên liệu liên kết trong DDS.")
+    else:
+        p1,p2=st.columns(2,gap="large")
+        p1.metric("Nhiên liệu mua ghi nhận",f"{purchases['liters_purchased'].sum():,.2f} L")
+        p2.metric("Tổng chi phí mua",f"${purchases['total_cost_usd'].sum():,.2f}")
+        st.dataframe(purchases.rename(columns={
+            "fuel_purchase_id":"Mã giao dịch",
+            "purchase_date":"Ngày mua",
+            "liters_purchased":"Lượng mua (L)",
+            "total_cost_usd":"Chi phí (USD)",
+            "purchase_vehicle":"Phương tiện ghi nhận",
+        }),hide_index=True,use_container_width=True)
+        st.caption(
+            "Các giao dịch được liên kết bằng trip_id. Lượng nhiên liệu mua không đồng nhất "
+            "với lượng nhiên liệu tiêu hao từ cảm biến; cần kiểm tra xe và thời điểm mua "
+            "trước khi đánh giá chênh lệch."
+        )
+
 @st.cache_data(ttl=600)
 def get_flagged_vehicles():
     return con.execute("""
