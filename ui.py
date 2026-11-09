@@ -197,6 +197,35 @@ div[class*="st-key-browser_tabs"] [data-testid="stButton"] button:focus-visible{
 [data-testid="stMain"] div[class*="st-key-chart_panel"] .vega-embed > div {
  background-color:#FFFFFF!important;
 }
+
+/* Each dashboard has its own restrained accent without sacrificing contrast. */
+div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_10"] button:not([kind="primary"]){
+ background:#E6F0FB!important;color:#205985!important;
+}
+div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_11"] button:not([kind="primary"]){
+ background:#E3F2F0!important;color:#1C6865!important;
+}
+div[class*="st-key-browser_tabs"] [class*="st-key-top_tab_12"] button:not([kind="primary"]){
+ background:#FFF0E3!important;color:#855024!important;
+}
+div[class*="st-key-browser_tabs"] [data-testid="stButton"] button[kind="primary"]{
+ color:var(--page-accent)!important;
+ box-shadow:inset 0 3px 0 var(--page-accent)!important;
+}
+.dashboard-title-area{border-left-color:var(--page-accent)!important}
+.dashboard-eyebrow{color:var(--page-accent)!important}
+.dashboard-chip{background:var(--page-tint)!important;color:var(--page-accent)!important}
+.panel-heading-title{display:flex;align-items:center;gap:10px}
+.panel-heading-title:before{content:"";height:19px;width:4px;
+ border-radius:3px;background:var(--page-accent);display:inline-block}
+.kpi-grid .kpi-card:nth-child(4n+1) .kpi-icon{background:#E7F1FF;color:#246BB5}
+.kpi-grid .kpi-card:nth-child(4n+2) .kpi-icon{background:#FFF0E5;color:#B56B35}
+.kpi-grid .kpi-card:nth-child(4n+3) .kpi-icon{background:#E5F6EE;color:#207C5F}
+.kpi-grid .kpi-card:nth-child(4n+4) .kpi-icon{background:#EFEAFF;color:#7053B5}
+.kpi-card{border-color:#DEE7EF!important;box-shadow:0 4px 14px rgba(24,56,81,.045)}
+.insight-strip{background:#FFFFFF;border:1px solid #DCE5ED;border-left:4px solid var(--page-accent);
+ border-radius:10px;padding:12px 17px;margin:12px 0;color:#203A4E;font-size:.82rem}
+.insight-strip strong{color:var(--page-accent)}
 </style>
 """
 ICONS = {
@@ -218,7 +247,7 @@ def setup(page):
     """Top-of-page, Chrome-style tabs replacing the entire sidebar."""
     st.markdown(STYLES, unsafe_allow_html=True)
     st.markdown(
-        '<div class="browser-brand"><span class="browser-logo">'
+        '<div class="browser-brand theme-page-' + str(page) + '"><span class="browser-logo">'
         '<span class="browser-logo-mark">' + icon_svg("truck") + '</span>'
         'Fleet BI Dashboard</span>'
         '<span class="browser-brand-right">PHÂN TÍCH VẬN HÀNH ĐỘI XE</span></div>',
@@ -228,6 +257,13 @@ def setup(page):
         ("app.py", "Tổng quan vận hành", ":material/dashboard:", 10),
         ("pages/2_Route_GIS.py", "Phân tích tuyến đường", ":material/map:", 11),
         ("pages/3_Fuel_Analytics.py", "Phân tích nhiên liệu", ":material/local_gas_station:", 12),
+    )
+    st.markdown(
+        '<style>:root{--page-accent:' +
+        {10:"#2678C8",11:"#168C88",12:"#CA8650"}.get(page,"#2678C8") +
+        ';--page-tint:' +
+        {10:"#EAF3FF",11:"#E7F7F4",12:"#FFF1E5"}.get(page,"#EAF3FF") +
+        ';}</style>', unsafe_allow_html=True,
     )
     with st.container(key="browser_tabs"):
         columns = st.columns(3, gap="small")
