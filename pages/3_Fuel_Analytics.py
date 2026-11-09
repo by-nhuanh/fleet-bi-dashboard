@@ -69,6 +69,39 @@ def get_labels():
 with st.expander("Phân bố nhãn bất thường gốc trong DDS",expanded=False):
     st.dataframe(get_labels(),hide_index=True,use_container_width=True)
 
+# Expose the anomaly inventory as a real-data visual, not inferred diagnoses.
+recorded_labels = get_labels()
+alert_labels = recorded_labels[
+    ~recorded_labels["anomaly_type"].isin(["NORMAL", "NONE", "", "(NULL)"])
+].copy()
+if not alert_labels.empty:
+    section("Cơ cấu tín hiệu cần rà soát")
+    with st.container(border=False, key="chart_panel_anomaly_mix"):
+        alert_labels["label_vi"] = alert_labels["anomaly_type"].replace({
+            "FUEL_THEFT": "Dấu hiệu thất thoát nhiên liệu",
+            "IDLE_EXTENDED": "Dừng chờ kéo dài",
+            "FUEL_RECEIPT_MISMATCH": "Chênh lệch giao dịch nhiên liệu",
+            "GPS_JUMP_RECOVERY": "Điểm GPS cần kiểm tra",
+        })
+        chart_alert = alt.Chart(alert_labels.sort_values("point_count")).mark_bar(
+            color="#CA8650", cornerRadiusEnd=4
+        ).encode(
+            x=alt.X("point_count:Q", title="Số điểm có nhãn"),
+            y=alt.Y("label_vi:N", sort=None, title=None),
+            tooltip=[
+                alt.Tooltip("anomaly_type:N", title="Nhãn dữ liệu"),
+                alt.Tooltip("point_count:Q", title="Số điểm", format=","),
+                alt.Tooltip("trip_count:Q", title="Số chuyến", format=","),
+            ]
+        ).properties(height=235).configure(background="#FFFFFF").configure_view(
+            stroke=None
+        ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E6EEF2")
+        st.altair_chart(chart_alert, use_container_width=True, theme=None)
+        st.caption(
+            "Tổng hợp nhãn có sẵn trong kho GPS. Các nhãn chỉ hỗ trợ ưu tiên kiểm tra, "
+            "không tự động xác nhận thất thoát hay hỏng hóc."
+        )
+
 section("Phân tích chi tiết theo chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
 index_options={row.trip_id:row for row in options.itertuples()}
