@@ -237,7 +237,7 @@ if routes_df.empty:
 else:
     left,right=st.columns([1.25,1],gap="large")
     with left:
-        with st.container(border=True):
+        with st.container(border=True, key="chart_panel_routes"):
             st.markdown("**10 tuyến có nhiều chuyến nhất**")
             top=routes_df.head(10).sort_values("trips")
             chart=alt.Chart(top).mark_bar(color="#347F96",cornerRadiusEnd=4).encode(
@@ -251,7 +251,7 @@ else:
             )
             st.altair_chart(chart,use_container_width=True,theme=None)
     with right:
-        with st.container(border=True):
+        with st.container(border=True, key="chart_panel_route_table"):
             st.markdown("**Đối soát tỷ lệ giao trễ theo tuyến**")
             display=routes_df[[
                 "route_id","route_name","trips","eligible","late","late_rate_pct"
