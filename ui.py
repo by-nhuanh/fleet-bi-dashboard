@@ -28,46 +28,64 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
  background:#FFF!important;color:#19364E!important;border:1px solid #D8E3EE!important;border-radius:10px!important
 }
 [data-testid="stDateInput"] input::placeholder,[data-testid="stMultiSelect"] input::placeholder{color:#111827!important;opacity:1}
-[data-testid="stSidebar"]{background:linear-gradient(180deg,#102F4B 0%,#153D63 76%,#19456C 100%)!important}
-[data-testid="stSidebar"]>div{background:transparent!important}
+/* Consistent compact business navigation */
+section[data-testid="stSidebar"]{
+  background:#142F49!important;
+  min-width:254px!important;width:254px!important;
+  border-right:1px solid #28445F!important;
+}
+section[data-testid="stSidebar"]>div{background:transparent!important}
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+  padding:12px 16px 20px!important;
+}
 [data-testid="stSidebarNav"]{display:none!important}
-[data-testid="stSidebar"] [data-testid="stSidebarContent"]{padding-top:1rem!important}
-[data-testid="stSidebar"] p,[data-testid="stSidebar"] label{color:#D7E6F5!important}
-[data-testid="stSidebar"] [data-testid="stPageLink"]{width:100%}
-[data-testid="stSidebar"] [data-testid="stPageLink"] a,
-[data-testid="stSidebar"] a[data-testid*="stPageLink"]{
- display:flex!important;align-items:center!important;gap:.75rem!important;
- width:100%!important;min-height:56px!important;
- padding:.82rem .8rem!important;border-radius:12px!important;
- background:rgba(255,255,255,.065)!important;border:1px solid rgba(206,226,248,.14)!important;
- color:#EAF4FF!important;text-decoration:none!important;
- font-size:.89rem!important;font-weight:650!important;
- transition:background-color .15s ease,border-color .15s ease,transform .15s ease
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
+  gap:9px!important;
 }
-[data-testid="stSidebar"] [data-testid="stPageLink"] a *,
-[data-testid="stSidebar"] a[data-testid*="stPageLink"] *{color:inherit!important}
-[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover,
-[data-testid="stSidebar"] a[data-testid*="stPageLink"]:hover{
- background:#245A89!important;border-color:#70B5FB!important;transform:translateX(2px)
+section[data-testid="stSidebar"] [data-testid="stPageLink"]{width:100%;margin:0!important}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a{
+  display:flex!important;align-items:center!important;gap:11px!important;
+  min-height:44px!important;padding:10px 12px!important;
+  width:100%!important;border:0!important;border-radius:9px!important;
+  color:#E5EDF4!important;background:transparent!important;
+  font-size:.87rem!important;font-weight:620!important;
+  text-decoration:none!important;box-shadow:none!important;
+  transition:background .15s ease!important;
 }
-[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"],
-[data-testid="stSidebar"] a[data-testid*="stPageLink"][aria-current="page"],
-[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-selected="true"]{
- background:linear-gradient(105deg,#2384F8,#1765C6)!important;
- border:1px solid #77B8FF!important;color:#FFFFFF!important;
- box-shadow:0 6px 14px rgba(3,20,48,.23)!important;font-weight:760!important
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a *{color:inherit!important}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:hover{
+  background:#244967!important;
 }
-[data-testid="stSidebar"] [data-testid="stPageLink"] a:focus-visible{
- outline:3px solid #BCE1FF!important;outline-offset:2px
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-current="page"],
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a[aria-selected="true"]{
+  background:#2365A5!important;color:#FFFFFF!important;font-weight:730!important;
 }
-.nav-brand{display:flex;align-items:center;gap:.8rem;padding:.7rem .15rem 1.05rem;color:#fff}
-.nav-brand-icon{width:44px;height:44px;background:#247CE2;border-radius:12px;display:flex;align-items:center;justify-content:center}
-.nav-brand-icon svg{width:27px;height:27px;stroke:#fff;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.nav-brand-text{color:#fff;font-weight:790;font-size:1.06rem;letter-spacing:-.025em;line-height:1.32}
-.nav-brand-sub{font-size:.7rem;color:#AFC9E2;letter-spacing:.11em;font-weight:700}
-.nav-label{font-size:.68rem;color:#8EAFD0;font-weight:730;letter-spacing:.13em;margin:.6rem .25rem .6rem}
-.nav-divider{height:1px;background:rgba(207,226,249,.18);margin:1.15rem 0}
-.nav-bottom{font-size:.72rem;color:#B8CEE1;padding:.2rem .25rem;line-height:1.7}
+section[data-testid="stSidebar"] [data-testid="stPageLink"] a:focus-visible{
+  outline:2px solid #C5E5FF!important;outline-offset:2px!important;
+}
+.nav-brand{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 2px 12px!important;min-width:0;
+  color:#FFFFFF;
+}
+.nav-brand-icon{
+  width:36px;height:36px;flex:0 0 36px;display:flex;
+  align-items:center;justify-content:center;border-radius:9px;background:#2879C8;
+}
+.nav-brand-icon svg{width:22px;height:22px;stroke:#FFFFFF;stroke-width:1.8;fill:none}
+.nav-brand-copy{min-width:0}
+.nav-brand-text{font-size:1rem;color:#FFFFFF;font-weight:780;line-height:1.24;white-space:nowrap}
+.nav-brand-sub{font-size:.68rem;color:#BCD1E3;font-weight:550;margin-top:3px;white-space:nowrap}
+.nav-label{font-size:.66rem;font-weight:720;letter-spacing:.1em;color:#B5CBDD;margin:13px 9px 4px}
+.nav-divider{height:1px;background:rgba(201,225,242,.14);margin:14px 0 10px}
+.nav-bottom{font-size:.71rem;color:#C3D3E1;padding:4px 7px;line-height:1.75}
+section[data-testid="stSidebar"] [data-testid="stButton"] button{
+  border:1px solid rgba(207,230,245,.17)!important;
+  border-radius:8px!important;background:transparent!important;
+  color:#EAF4FE!important;box-shadow:none!important;font-size:.77rem!important;
+  min-height:34px!important;padding:5px 9px!important;
+}
+section[data-testid="stSidebar"] [data-testid="stButton"] button:hover{background:#244967!important}
 .dashboard-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1.2rem;
  padding:0 0 1.3rem;border-bottom:1px solid #DFE8F2;margin-bottom:1.15rem}
 .dashboard-title-area{border-left:4px solid #2985F4;padding-left:1.1rem}
@@ -155,30 +173,6 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 [data-testid="stSidebar"] button[kind="secondary"]:hover{background:#317EC0!important}
 
 
-/* Keep native Streamlit block layout; flex overrides cause oversized sidebar gaps. */
-section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
-  padding:10px 14px 16px!important;
-}
-section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
-  gap:8px!important;
-}
-section[data-testid="stSidebar"] .nav-brand{
-  display:grid!important;grid-template-columns:40px minmax(0,1fr)!important;
-  align-items:center!important;gap:10px!important;
-  padding:6px 0 12px!important;min-width:0!important;
-}
-section[data-testid="stSidebar"] .nav-brand-icon{width:40px!important;height:40px!important}
-section[data-testid="stSidebar"] .nav-brand-text{
-  display:block!important;font-size:.92rem!important;line-height:1.22!important;
-  white-space:normal!important;overflow-wrap:break-word!important;
-}
-section[data-testid="stSidebar"] .nav-brand-sub{display:block!important;font-size:.68rem!important;margin-top:4px!important}
-section[data-testid="stSidebar"] [data-testid="stPageLink"] a{
-  min-height:46px!important;padding:9px 11px!important;
-}
-section[data-testid="stSidebar"] [data-testid="stButton"] button{
-  min-height:38px!important;font-size:.8rem!important;
-}
 </style>
 """
 
@@ -198,113 +192,98 @@ def icon_svg(name):
 
 
 def setup(page):
-    """Navigation shared across pages. Compact mode renders actual icon buttons."""
+    """Compact, top-aligned navigation shared by all dashboard pages."""
     st.markdown(STYLES, unsafe_allow_html=True)
     if "navigation_compact" not in st.session_state:
         st.session_state.navigation_compact = False
-
     compact = st.session_state.navigation_compact
-    with st.sidebar:
-        if st.button(
-            " " if compact else "Thu gọn thanh điều hướng",
-            icon=":material/left_panel_open:" if compact else ":material/left_panel_close:",
-            key="toggle_navigation",
-            help="Mở rộng thanh điều hướng" if compact else "Thu gọn thanh điều hướng",
-            use_container_width=True,
-        ):
-            st.session_state.navigation_compact = not compact
-            st.rerun()
 
+    with st.sidebar:
         if compact:
             st.markdown(
-                '<div class="nav-brand compact-brand"><span class="nav-brand-icon">' +
-                icon_svg("truck") + '</span></div>',
+                '<div class="nav-brand nav-brand-compact"><span class="nav-brand-icon">'
+                + icon_svg("truck") + '</span></div>',
                 unsafe_allow_html=True,
             )
-            pages = [
+            if st.button(" ", icon=":material/chevron_right:", help="Mở rộng menu",
+                         key="toggle_navigation", use_container_width=True):
+                st.session_state.navigation_compact = False
+                st.rerun()
+            entries = [
                 ("app.py", "Tổng quan vận hành", ":material/dashboard:", 10),
                 ("pages/2_Route_GIS.py", "Phân tích tuyến đường", ":material/map:", 11),
                 ("pages/3_Fuel_Analytics.py", "Phân tích nhiên liệu", ":material/local_gas_station:", 12),
             ]
-            for path, label, icon, page_num in pages:
+            for path, title, icon, code in entries:
                 if st.button(
-                    " ",
-                    icon=icon,
-                    key=f"nav_compact_{page_num}",
-                    help=label,
+                    " ", icon=icon, key=f"nav_compact_{code}", help=title,
+                    type="primary" if page == code else "secondary",
                     use_container_width=True,
-                    type="primary" if page == page_num else "secondary",
                 ):
                     st.switch_page(path)
         else:
-            st.markdown(
-                '<div class="nav-brand"><span class="nav-brand-icon">' +
-                icon_svg("truck") +
-                '</span><span><span class="nav-brand-text">Fleet BI Dashboard</span>'
-                '<span class="nav-brand-sub">Vận hành đội xe</span></span></div>'
-                '<div class="nav-label">DANH MỤC PHÂN TÍCH</div>',
-                unsafe_allow_html=True,
-            )
-            st.page_link(
-                "app.py", label="Tổng quan vận hành",
-                icon=":material/dashboard:", use_container_width=True,
-            )
-            st.page_link(
-                "pages/2_Route_GIS.py", label="Phân tích tuyến đường",
-                icon=":material/map:", use_container_width=True,
-            )
-            st.page_link(
-                "pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu",
-                icon=":material/local_gas_station:", use_container_width=True,
-            )
+            head, toggle = st.columns([5, 1], vertical_alignment="center", gap="small")
+            with head:
+                st.markdown(
+                    '<div class="nav-brand"><span class="nav-brand-icon">'
+                    + icon_svg("truck")
+                    + '</span><span class="nav-brand-copy">'
+                    '<span class="nav-brand-text">Fleet BI</span>'
+                    '<span class="nav-brand-sub">Vận hành đội xe</span></span></div>',
+                    unsafe_allow_html=True,
+                )
+            with toggle:
+                if st.button(" ", icon=":material/chevron_left:", help="Thu gọn menu",
+                             key="toggle_navigation", use_container_width=True):
+                    st.session_state.navigation_compact = True
+                    st.rerun()
+
+            st.markdown('<div class="nav-label">DANH MỤC PHÂN TÍCH</div>', unsafe_allow_html=True)
+            st.page_link("app.py", label="Tổng quan vận hành",
+                         icon=":material/dashboard:", use_container_width=True)
+            st.page_link("pages/2_Route_GIS.py", label="Phân tích tuyến đường",
+                         icon=":material/map:", use_container_width=True)
+            st.page_link("pages/3_Fuel_Analytics.py", label="Phân tích nhiên liệu",
+                         icon=":material/local_gas_station:", use_container_width=True)
             st.markdown(
                 '<div class="nav-divider"></div>'
-                '<div class="nav-bottom">Nguồn dữ liệu: DDS / DuckDB'
-                '<div>Không phải dữ liệu thời gian thực</div></div>',
+                '<div class="nav-bottom">Nguồn dữ liệu: DuckDB'
+                '<div>Dữ liệu vận hành lịch sử</div></div>',
                 unsafe_allow_html=True,
             )
 
     if compact:
         st.markdown("""<style>
-        section[data-testid="stSidebar"] {
-            width:88px!important;min-width:88px!important;max-width:88px!important;
+        section[data-testid="stSidebar"]{
+          width:74px!important;min-width:74px!important;max-width:74px!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-            width:88px!important;min-width:88px!important;
-            padding:12px 10px!important;
+        section[data-testid="stSidebar"] [data-testid="stSidebarContent"]{
+          width:74px!important;min-width:74px!important;padding:12px 9px!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-            gap:12px!important;
+        section[data-testid="stSidebar"] .nav-brand-compact{
+          justify-content:center!important;padding:5px 0 9px!important;
         }
-        section[data-testid="stSidebar"] .compact-brand {
-            display:flex!important;justify-content:center!important;padding:.35rem 0 .75rem!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button{
+          width:52px!important;min-width:52px!important;max-width:52px!important;
+          height:44px!important;min-height:44px!important;
+          display:flex!important;align-items:center!important;justify-content:center!important;
+          padding:0!important;margin:0 auto!important;border:0!important;
+          border-radius:10px!important;
         }
-        section[data-testid="stSidebar"] .compact-brand .nav-brand-icon {
-            width:44px!important;height:44px!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button p{
+          font-size:0!important;width:0!important;overflow:hidden!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button {
-            width:58px!important;min-width:58px!important;max-width:58px!important;
-            height:54px!important;min-height:54px!important;
-            border-radius:13px!important;
-            display:flex!important;align-items:center!important;justify-content:center!important;
-            padding:0!important;box-shadow:none!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button [data-testid="stIconMaterial"]{
+          font-size:23px!important;color:#EAF4FF!important;line-height:1!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button p {
-            margin:0!important;line-height:0!important;font-size:0!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"]{
+          background:#2576C5!important;color:white!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button span[data-testid="stIconMaterial"],
-        section[data-testid="stSidebar"] [data-testid="stButton"] button [data-testid="stIconMaterial"] {
-            font-size:25px!important;line-height:1!important;color:#FFFFFF!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="secondary"]{
+          background:transparent!important;
         }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="primary"] {
-            background:#2683EF!important;border:1px solid #80BBFF!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button[kind="secondary"] {
-            background:rgba(255,255,255,.075)!important;
-            border:1px solid rgba(213,232,248,.16)!important;
-        }
-        section[data-testid="stSidebar"] [data-testid="stButton"] button:hover {
-            background:#296B9C!important;border-color:#90C5F6!important;
+        section[data-testid="stSidebar"] [data-testid="stButton"] button:hover{
+          background:#285373!important;
         }
         </style>""",unsafe_allow_html=True)
 
