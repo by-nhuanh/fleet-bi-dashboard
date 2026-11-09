@@ -266,15 +266,15 @@ fuel_chart = make_chart_light(fuel_chart)
 section("Xu hướng vận hành", hint="THỐNG KÊ THEO THÁNG")
 left, right = st.columns(2, gap="large")
 with left:
-    with st.container(border=True):
+    with st.container(border=True, key="chart_panel_trips"):
         st.markdown('<div class="chart-heading">Số chuyến theo tháng</div><div class="chart-subtitle">Phân bố tổng chuyến theo thời điểm khởi hành</div>', unsafe_allow_html=True)
         st.altair_chart(trips_chart.properties(height=280), use_container_width=True, theme=None)
 with right:
-    with st.container(border=True):
+    with st.container(border=True, key="chart_panel_late"):
         st.markdown('<div class="chart-heading">Tỷ lệ giao hàng trễ</div><div class="chart-subtitle">Tỷ lệ trên các chuyến đủ điều kiện KPI</div>', unsafe_allow_html=True)
         st.altair_chart(late_chart.properties(height=280), use_container_width=True, theme=None)
 
-with st.container(border=True):
+with st.container(border=True, key="chart_panel_fuel"):
     st.markdown('<div class="chart-heading">Chi phí mua nhiên liệu theo tháng</div><div class="chart-subtitle">Gắn chi phí mua nhiên liệu với ngày bắt đầu của chuyến liên kết</div>', unsafe_allow_html=True)
     st.altair_chart(fuel_chart.properties(height=250), use_container_width=True, theme=None)
 
