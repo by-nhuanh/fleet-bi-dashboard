@@ -177,6 +177,50 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     .title-line { font-size: 1.65rem; }
     .metric-tile { min-height: 155px; }
 }
+
+/* Force readable light surfaces regardless of browser/OS theme. */
+[data-testid="stApp"], [data-testid="stAppViewContainer"], .main {
+    background-color: #f3f7f7 !important;
+    color: #213449 !important;
+    color-scheme: light;
+}
+[data-testid="stMain"] p, [data-testid="stMain"] label,
+[data-testid="stMain"] h1, [data-testid="stMain"] h2,
+[data-testid="stMain"] h3, [data-testid="stMain"] span,
+[data-testid="stMain"] small {
+    color: #213449;
+}
+[data-testid="stExpander"] {
+    background-color: #ffffff !important;
+    border: 1px solid #dce7e9 !important;
+}
+[data-testid="stExpander"] summary, [data-testid="stExpander"] summary *,
+[data-testid="stExpander"] details, [data-testid="stExpander"] details * {
+    color: #243c50 !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"] > div {
+    background-color: #ffffff !important;
+    color: #213449 !important;
+}
+[data-testid="stDataFrame"] {
+    background-color: #ffffff;
+    color-scheme: light;
+}
+[data-baseweb="select"] > div, [data-baseweb="input"] > div,
+[data-testid="stDateInput"] input, [data-testid="stMultiSelect"] input {
+    background-color: #ffffff !important;
+    color: #213449 !important;
+}
+[data-testid="stDateInput"] input::placeholder,
+[data-testid="stMultiSelect"] input::placeholder {
+    color: #526777 !important;
+    opacity: 1;
+}
+[data-testid="stAppViewContainer"] .stCaption,
+[data-testid="stAppViewContainer"] [data-testid="stCaptionContainer"] {
+    color: #536b7d !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -411,20 +455,46 @@ fuel_chart = base.mark_area(
     ],
 )
 
+
+# Explicit chart colors prevent black chart canvases in dark OS/browser mode.
+def make_chart_light(chart):
+    return (
+        chart.configure(
+            background="#ffffff",
+            padding={"left": 8, "right": 12, "top": 12, "bottom": 12},
+        )
+        .configure_view(stroke=None, fill="#ffffff")
+        .configure_axis(
+            labelColor="#344b60",
+            titleColor="#344b60",
+            domainColor="#becdd5",
+            tickColor="#becdd5",
+            gridColor="#e9eff1",
+            labelFontSize=11,
+            titleFontSize=12,
+        )
+        .configure_legend(labelColor="#344b60", titleColor="#344b60")
+        .configure_title(color="#203a51")
+    )
+
+trips_chart = make_chart_light(trips_chart)
+late_chart = make_chart_light(late_chart)
+fuel_chart = make_chart_light(fuel_chart)
+
 st.markdown('<div class="section-title">Phân tích xu hướng</div>', unsafe_allow_html=True)
 left, right = st.columns(2, gap="medium")
 with left:
     with st.container(border=True):
         st.markdown('<div class="chart-heading">Số chuyến theo tháng</div><div class="chart-sub">Phân bố tổng chuyến theo thời điểm khởi hành</div>', unsafe_allow_html=True)
-        st.altair_chart(trips_chart.properties(height=280), use_container_width=True)
+        st.altair_chart(trips_chart.properties(height=280), use_container_width=True, theme=None)
 with right:
     with st.container(border=True):
         st.markdown('<div class="chart-heading">Tỷ lệ giao hàng trễ</div><div class="chart-sub">Tỷ lệ trên các chuyến đủ điều kiện KPI</div>', unsafe_allow_html=True)
-        st.altair_chart(late_chart.properties(height=280), use_container_width=True)
+        st.altair_chart(late_chart.properties(height=280), use_container_width=True, theme=None)
 
 with st.container(border=True):
     st.markdown('<div class="chart-heading">Chi phí mua nhiên liệu theo tháng</div><div class="chart-sub">Gắn chi phí mua nhiên liệu với ngày bắt đầu của chuyến liên kết</div>', unsafe_allow_html=True)
-    st.altair_chart(fuel_chart.properties(height=250), use_container_width=True)
+    st.altair_chart(fuel_chart.properties(height=250), use_container_width=True, theme=None)
 
 st.markdown(
     '<div class="note"><b>Quy ước dữ liệu:</b> Lọc theo ngày bắt đầu chuyến; '
