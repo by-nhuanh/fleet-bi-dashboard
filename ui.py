@@ -81,17 +81,33 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:1.45rem 0 .75rem}
 .panel-heading-title{font-weight:770;font-size:1.07rem;letter-spacing:-.02em;color:#1B3753}
 .panel-heading-hint{color:#111827;font-size:.72rem;font-weight:620;text-align:right}
-.kpi-card{background:#FFF;border:1px solid #E1EAF4;border-radius:15px;
- padding:1.04rem 1.14rem;height:184px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 4px 16px rgba(27,59,90,.045);
- border-top:1px solid #E1EAF4}
-.kpi-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
-.kpi-label{font-size:.78rem;color:#111827;font-weight:680;line-height:1.35}
-.kpi-icon{height:38px;width:38px;border-radius:11px;background:var(--tint);color:var(--accent);
- display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.kpi-icon svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kpi-value{margin:.62rem 0 .29rem;font-weight:790;font-size:clamp(1.16rem,1.65vw,1.82rem);
- letter-spacing:-.04em;color:#142C46;white-space:normal;overflow-wrap:anywhere}
-.kpi-foot{color:#111827;font-size:.735rem;line-height:1.4}
+.kpi-grid{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:20px;margin:4px 0 18px;align-items:stretch;
+}
+.kpi-grid.kpi-grid-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpi-card{
+ display:flex;flex-direction:column;gap:7px;
+ padding:15px 17px;background:#FFFFFF;
+ border:1px solid #E2EAF2;border-radius:14px;
+ box-sizing:border-box;min-width:0;min-height:130px;
+ box-shadow:0 3px 12px rgba(27,59,90,.035)
+}
+.kpi-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kpi-label{font-size:.79rem;font-weight:700;line-height:1.3;color:#111827;max-width:calc(100% - 40px)}
+.kpi-icon{width:34px;height:34px;flex-shrink:0;display:flex;
+ align-items:center;justify-content:center;background:#EFF4F8;color:#234F76;border-radius:9px}
+.kpi-icon svg{width:19px;height:19px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kpi-value{font-size:clamp(1.3rem,1.7vw,1.84rem);line-height:1.13;
+ font-weight:790;color:#142C46;letter-spacing:-.04em;overflow-wrap:anywhere;margin:2px 0 0}
+.kpi-foot{color:#111827;font-size:.72rem;line-height:1.3;margin-top:auto}
+@media(max-width:1150px){
+ .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ .kpi-grid,.kpi-grid.kpi-grid-three{grid-template-columns:1fr;gap:12px}
+ .kpi-card{min-height:116px}
+}
 .chart-heading{font-size:.93rem;font-weight:750;color:#23405A;margin:.15rem 0 .35rem}
 .chart-subtitle{font-size:.76rem;color:#111827;margin:.1rem 0 .6rem}
 .note-panel{padding:.87rem 1.05rem;border-left:3px solid #2B94A0;border-radius:0 10px 10px 0;
@@ -103,7 +119,7 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 @media(max-width:900px){
  [data-testid="stMain"] .block-container{padding:1.1rem .9rem 2rem}
  .dashboard-header{flex-direction:column}
- .kpi-card{height:184px}
+ .kpi-card{min-height:116px}
  .kpi-value{font-size:1.55rem}
  .panel-heading-hint{display:none}
 }
@@ -138,6 +154,21 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 }
 [data-testid="stSidebar"] button[kind="secondary"]:hover{background:#317EC0!important}
 
+
+/* Sidebar content remains top-aligned; no vertical centering. */
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] > div,
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
+ display:flex!important;flex-direction:column!important;
+ justify-content:flex-start!important;align-items:stretch!important;
+ align-content:flex-start!important;
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"]{
+ gap:9px!important;margin-top:0!important;
+}
+section[data-testid="stSidebar"] [data-testid="stButton"]{
+ margin:0!important;
+}
 </style>
 """
 
@@ -288,23 +319,33 @@ def filter_title():
 
 
 def section(title, hint=""):
+    """Display only the operational section title, without redundant all-caps notes."""
     st.markdown(
         '<div class="panel-heading"><div class="panel-heading-title">' +
-        html.escape(title) + '</div><div class="panel-heading-hint">' +
-        html.escape(hint) + '</div></div>',
+        html.escape(title) + '</div></div>',
         unsafe_allow_html=True,
     )
 
 
-def metric_card(label, value, detail, icon="truck", accent="#287CF0", tint="#E9F2FF"):
-    st.markdown(
-        '<div class="kpi-card" style="--accent:' + accent + ';--tint:' + tint + '">'
+def metric_card(label, value, detail, icon="truck", accent="#287CF0", tint="#E9F2FF", render=True):
+    """Return the card HTML for a responsive grid; render directly if requested."""
+    markup = (
+        '<div class="kpi-card">'
         '<div class="kpi-card-top"><span class="kpi-label">' + html.escape(str(label)) + '</span>'
         '<span class="kpi-icon">' + icon_svg(icon) + '</span></div>'
         '<div class="kpi-value">' + html.escape(str(value)) + '</div>'
-        '<div class="kpi-foot">' + html.escape(str(detail)) + '</div></div>',
-        unsafe_allow_html=True,
+        '<div class="kpi-foot">' + html.escape(str(detail)) + '</div></div>'
     )
+    if render:
+        st.markdown(markup, unsafe_allow_html=True)
+    return markup
+
+
+def metric_grid(cards, columns=4):
+    """Cards in one HTML grid avoid Streamlit column spacing and height drift."""
+    kind = "kpi-grid-three" if columns == 3 else ""
+    st.markdown('<div class="kpi-grid ' + kind + '">' + "".join(cards) + '</div>',
+                unsafe_allow_html=True)
 
 
 def note(content):
