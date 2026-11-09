@@ -127,7 +127,8 @@ where_clause = " AND ".join(conditions)
 
 cte = f"""
 WITH filtered_trips AS (
-    SELECT t.trip_id, t.is_kpi_eligible, t.delay_minutes, d.year, d.month,\n           origin.facility_name AS origin_facility, v.truck_id
+    SELECT t.trip_id, t.is_kpi_eligible, t.delay_minutes, d.year, d.month,
+           origin.facility_name AS origin_facility, v.truck_id
     FROM dds.Fact_Trips t
     JOIN dds.Dim_Date d ON t.start_date_key = d.date_key
     JOIN dds.Dim_Vehicle v ON t.vehicle_key = v.vehicle_key
