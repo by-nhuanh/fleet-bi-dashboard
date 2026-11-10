@@ -108,7 +108,10 @@ metric_grid([
                 "Số chuyến có vị trí được ghi nhận", "truck", render=False),
     metric_card("Điểm ghi nhận vận tốc thấp", f"{low_count:,}",
                 f"Vận tốc từ 0 đến {threshold} km/h", "clock", render=False),
-], columns=3)
+    metric_card("Tỷ trọng điểm vận tốc thấp",
+                f"{100 * low_count / gps_count:.2f}%" if gps_count else "N/A",
+                "Tỷ lệ trên tổng số điểm GPS trong bộ lọc", "chart", render=False),
+], columns=4)
 
 section("Bản đồ phân bố điểm vận tốc thấp", "VỊ TRÍ GHI NHẬN")
 if spots.empty:
@@ -272,74 +275,120 @@ def route_performance(start,end,route_value):
         df["route_name"]=df["origin_city"]+" → "+df["destination_city"]
     return df
 
-routes_df=route_performance(dates[0],dates[1],route)
-section("Hiệu quả vận hành theo tuyến", "SO SÁNH THEO TUYẾN")
+routes_df = route_performance(dates[0], dates[1], route)
+section("Hiệu quả giao hàng theo tuyến")
 if routes_df.empty:
-    st.info("Không có chuyến thuộc bộ lọc.")
+    st.info("Không có chuyến phù hợp với bộ lọc.")
 else:
-    left,right=st.columns([1.25,1],gap="large")
+    valid = routes_df[
+        routes_df["eligible"].gt(0) & routes_df["late_rate_pct"].notna()
+    ].copy()
+    volume_top = routes_df.nlargest(10, "trips").copy()
+    volume_top["eligible_rate_pct"] = (
+        100 * volume_top["eligible"] / volume_top["trips"]
+    )
+    left, right = st.columns([1.2, 1], gap="large")
     with left:
-        with st.container(border=False, key="chart_panel_routes"):
-            st.markdown("**10 tuyến có nhiều chuyến nhất**")
-            top=routes_df.head(10).sort_values("trips")
-            chart=alt.Chart(top).mark_bar(color="#347F96",cornerRadiusEnd=4).encode(
-                x=alt.X("trips:Q",title="Số chuyến"),
-                y=alt.Y("route_name:N",sort=None,title=None),
-                tooltip=["route_id:N","trips:Q"]
-            ).properties(height=360).configure(
-                background="#FFFFFF"
-            ).configure_view(stroke=None).configure_axis(
-                labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2"
+        with st.container(border=False, key="chart_panel_route_scatter"):
+            st.markdown(
+                '<div class="chart-heading">Số chuyến hợp lệ và tỷ lệ giao trễ</div>',
+                unsafe_allow_html=True,
             )
-            st.altair_chart(chart,use_container_width=True,theme=None)
+            st.caption("Mỗi điểm là một tuyến. Kích thước biểu thị tổng số chuyến.")
+            if valid.empty:
+                st.info("Không có tuyến đủ điều kiện đánh giá.")
+            else:
+                scatter = alt.Chart(valid).mark_circle(
+                    color="#168B87", opacity=.78, stroke="#FFFFFF", strokeWidth=1.3
+                ).encode(
+                    x=alt.X("eligible:Q", title="Chuyến đủ điều kiện",
+                            scale=alt.Scale(zero=True)),
+                    y=alt.Y("late_rate_pct:Q", title="Tỷ lệ giao trễ (%)",
+                            scale=alt.Scale(zero=False, padding=12)),
+                    size=alt.Size("trips:Q", title="Tổng số chuyến",
+                                  scale=alt.Scale(range=[75, 600])),
+                    tooltip=[
+                        alt.Tooltip("route_name:N", title="Tuyến"),
+                        alt.Tooltip("route_id:N", title="Mã tuyến"),
+                        alt.Tooltip("trips:Q", title="Tổng chuyến", format=","),
+                        alt.Tooltip("eligible:Q", title="Chuyến hợp lệ", format=","),
+                        alt.Tooltip("late:Q", title="Chuyến trễ", format=","),
+                        alt.Tooltip("late_rate_pct:Q", title="Tỷ lệ trễ", format=".2f"),
+                    ],
+                ).properties(height=320).configure(
+                    background="#FFFFFF"
+                ).configure_view(stroke=None).configure_axis(
+                    labelColor="#172D43", titleColor="#172D43",
+                    gridColor="#E7EDF3", labelFontSize=11
+                )
+                st.altair_chart(scatter, use_container_width=True, theme=None)
     with right:
         with st.container(border=False, key="chart_panel_route_table"):
-            st.markdown("**Đối soát tỷ lệ giao trễ theo tuyến**")
-            display=routes_df[[
-                "route_id","route_name","trips","eligible","late","late_rate_pct"
-            ]].head(12).rename(columns={
-                "route_id":"Mã tuyến","route_name":"Tuyến",
-                "trips":"Chuyến","eligible":"Hợp lệ","late":"Trễ",
-                "late_rate_pct":"Trễ (%)"
+            st.markdown(
+                '<div class="chart-heading">Đối soát 10 tuyến có nhiều chuyến</div>',
+                unsafe_allow_html=True,
+            )
+            display = volume_top[[
+                "route_id", "route_name", "trips", "eligible", "late", "late_rate_pct"
+            ]].rename(columns={
+                "route_id": "Mã tuyến", "route_name": "Tuyến",
+                "trips": "Chuyến", "eligible": "Hợp lệ",
+                "late": "Trễ", "late_rate_pct": "Trễ (%)",
             })
-            st.dataframe(display,use_container_width=True,hide_index=True,height=390)
+            st.dataframe(
+                display, hide_index=True, use_container_width=True, height=380,
+                column_config={
+                    "Trễ (%)": st.column_config.NumberColumn(
+                        "Trễ (%)", format="%.2f"
+                    ),
+                },
+            )
+            st.caption("Tuyến có 0 chuyến hợp lệ không có tỷ lệ trễ (N/A).")
 
-# Compare late delivery using the eligible-trip denominator, never all trips.
-if not routes_df.empty:
-    eligible_routes = routes_df[
-        (routes_df["eligible"] > 0) & routes_df["late_rate_pct"].notna()
-    ].copy()
-    eligible_routes = eligible_routes.sort_values(
-        ["eligible", "route_id"], ascending=[False, True]
-    ).head(10)
-    section("Tỷ lệ giao hàng trễ theo tuyến")
+    section("So sánh tỷ lệ giao trễ giữa các tuyến")
     with st.container(border=False, key="chart_panel_route_late"):
-        if eligible_routes.empty:
+        if valid.empty:
             st.info("Không có tuyến có chuyến đủ điều kiện đánh giá.")
         else:
-            chart_late = alt.Chart(eligible_routes.sort_values("late_rate_pct")).mark_bar(
-                color="#CD8755", cornerRadiusEnd=4
-            ).encode(
-                x=alt.X("late_rate_pct:Q", title="Tỷ lệ giao trễ (%)",
-                        scale=alt.Scale(domain=[0,100])),
-                y=alt.Y("route_name:N", sort=None, title=None),
+            # Compare the 10 largest eligible denominators, avoiding
+            # unsupported minimum-sample thresholds.
+            compare = valid.nlargest(10, "eligible").sort_values(
+                "late_rate_pct", ascending=True
+            ).copy()
+            compare["baseline"] = compare["late_rate_pct"].min()
+            base = alt.Chart(compare).encode(
+                y=alt.Y("route_name:N", sort=None, title=None,
+                        axis=alt.Axis(labelLimit=230, labelFontSize=12)),
                 tooltip=[
                     alt.Tooltip("route_id:N", title="Mã tuyến"),
-                    alt.Tooltip("eligible:Q", title="Chuyến đủ điều kiện", format=","),
-                    alt.Tooltip("late:Q", title="Chuyến giao trễ", format=","),
+                    alt.Tooltip("eligible:Q", title="Chuyến hợp lệ", format=","),
+                    alt.Tooltip("late:Q", title="Chuyến trễ", format=","),
                     alt.Tooltip("late_rate_pct:Q", title="Tỷ lệ trễ (%)", format=".2f"),
                 ],
-            ).properties(height=315).configure(
+            )
+            axis = alt.X(
+                "late_rate_pct:Q", title="Tỷ lệ giao trễ (%)",
+                scale=alt.Scale(zero=False, padding=10),
+            )
+            # Dots, not bars: rate differences are legible without
+            # implying a zero-based magnitude comparison.
+            dot = base.mark_circle(size=145, color="#D28D57").encode(x=axis)
+            labels = base.mark_text(
+                align="left", dx=9, fontSize=11, color="#223D53"
+            ).encode(x=axis, text=alt.Text("late_rate_pct:Q", format=".2f"))
+            chart = (dot + labels).properties(height=330).configure(
                 background="#FFFFFF"
             ).configure_view(stroke=None).configure_axis(
-                labelColor="#172D43", titleColor="#172D43", gridColor="#E6EEF2"
+                labelColor="#172D43", titleColor="#172D43",
+                gridColor="#E7EDF3",
             )
-            st.altair_chart(chart_late, use_container_width=True, theme=None)
+            st.altair_chart(chart, use_container_width=True, theme=None)
             st.caption(
-                "Hiển thị tối đa 10 tuyến có nhiều chuyến đủ điều kiện đánh giá nhất. "
+                "Chọn 10 tuyến có nhiều chuyến đủ điều kiện đánh giá nhất, "
+                "sắp xếp theo tỷ lệ trễ. Trục tỷ lệ được thu gọn để thấy khác biệt; "
+                "không dùng chiều dài thanh để hàm ý tỷ lệ bắt đầu từ 0. "
                 "Tỷ lệ trễ = chuyến đủ điều kiện có delay_minutes > 0 / "
-                "tổng chuyến đủ điều kiện theo tuyến. "
-                "Không diễn giải tuyến ít mẫu như kết luận chất lượng dịch vụ."
+                "tổng chuyến đủ điều kiện của tuyến."
             )
 
 note("Điểm GPS có vận tốc thấp gần cơ sở có thể liên quan hoạt động bốc dỡ hoặc dừng chờ. Điểm chậm trên đường là tín hiệu cần kiểm tra, không chứng minh ùn tắc giao thông.")
