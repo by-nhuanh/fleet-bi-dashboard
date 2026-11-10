@@ -345,50 +345,117 @@ else:
             )
             st.caption("Tuyến có 0 chuyến hợp lệ không có tỷ lệ trễ (N/A).")
 
-    section("So sánh tỷ lệ giao trễ giữa các tuyến")
+    section("Tuyến giao trễ cao hơn hay thấp hơn tỷ lệ chung?")
     with st.container(border=False, key="chart_panel_route_late"):
         if valid.empty:
             st.info("Không có tuyến có chuyến đủ điều kiện đánh giá.")
         else:
-            # Compare the 10 largest eligible denominators, avoiding
-            # unsupported minimum-sample thresholds.
-            compare = valid.nlargest(10, "eligible").sort_values(
-                "late_rate_pct", ascending=True
-            ).copy()
-            compare["baseline"] = compare["late_rate_pct"].min()
+            # Use a weighted baseline over ALL eligible trips under the current
+            # date/route filters, not an unweighted mean of route percentages.
+            total_eligible = int(valid["eligible"].sum())
+            total_late = int(valid["late"].sum())
+            baseline_rate = 100.0 * total_late / total_eligible
+            compare = valid.nlargest(10, "eligible").copy()
+            compare["delta_pp"] = compare["late_rate_pct"] - baseline_rate
+            compare = compare.sort_values(
+                ["late_rate_pct", "eligible"], ascending=[False, False]
+            ).reset_index(drop=True)
+            compare["difference"] = compare["delta_pp"].map(
+                lambda value: f"{value:+.2f} đ.%"  # percentage points
+            )
+            compare["rate_label"] = compare["late_rate_pct"].map(
+                lambda value: f"{value:.2f}%"
+            )
+            compare["direction"] = compare["delta_pp"].apply(
+                lambda value: "Cao hơn chung" if value >= 0 else "Thấp hơn chung"
+            )
+
+            st.markdown(
+                '<div class="chart-heading">Chênh lệch tỷ lệ trễ theo tuyến</div>',
+                unsafe_allow_html=True,
+            )
+            st.caption(
+                f"Mốc tham chiếu theo bộ lọc: {baseline_rate:.2f}% "
+                f"({total_late:,}/{total_eligible:,} chuyến đủ điều kiện). "
+                "Mỗi điểm thể hiện chênh lệch so với mốc chung, đơn vị điểm phần trăm."
+            )
+            tooltips = [
+                alt.Tooltip("route_name:N", title="Tuyến"),
+                alt.Tooltip("route_id:N", title="Mã tuyến"),
+                alt.Tooltip("eligible:Q", title="Chuyến hợp lệ", format=","),
+                alt.Tooltip("late:Q", title="Chuyến trễ", format=","),
+                alt.Tooltip("late_rate_pct:Q", title="Tỷ lệ trễ (%)", format=".2f"),
+                alt.Tooltip("delta_pp:Q", title="Chênh lệch (đ.%)", format="+.2f"),
+            ]
+            y_axis = alt.Y(
+                "route_name:N", sort=None, title=None,
+                axis=alt.Axis(labelLimit=260, labelFontSize=12, ticks=False),
+            )
+            x_axis = alt.X(
+                "delta_pp:Q", title="Chênh lệch so với tỷ lệ chung (điểm %)",
+                scale=alt.Scale(zero=True, padding=25),
+                axis=alt.Axis(tickCount=5, grid=False, labelFontSize=11),
+            )
+            color = alt.Color(
+                "direction:N", legend=alt.Legend(
+                    title=None, orient="top", symbolType="circle"
+                ),
+                scale=alt.Scale(
+                    domain=["Cao hơn chung", "Thấp hơn chung"],
+                    range=["#D38D58", "#3B8F9D"],
+                ),
+            )
             base = alt.Chart(compare).encode(
-                y=alt.Y("route_name:N", sort=None, title=None,
-                        axis=alt.Axis(labelLimit=230, labelFontSize=12)),
-                tooltip=[
-                    alt.Tooltip("route_id:N", title="Mã tuyến"),
-                    alt.Tooltip("eligible:Q", title="Chuyến hợp lệ", format=","),
-                    alt.Tooltip("late:Q", title="Chuyến trễ", format=","),
-                    alt.Tooltip("late_rate_pct:Q", title="Tỷ lệ trễ (%)", format=".2f"),
-                ],
+                y=y_axis,
+                tooltip=tooltips,
             )
-            axis = alt.X(
-                "late_rate_pct:Q", title="Tỷ lệ giao trễ (%)",
-                scale=alt.Scale(zero=False, padding=10),
+            zero = alt.Chart(
+                pd.DataFrame({"reference": [0]})
+            ).mark_rule(color="#A2B4C3", strokeWidth=1.4).encode(
+                x=alt.X("reference:Q", axis=None)
             )
-            # Dots, not bars: rate differences are legible without
-            # implying a zero-based magnitude comparison.
-            dot = base.mark_circle(size=145, color="#D28D57").encode(x=axis)
-            labels = base.mark_text(
-                align="left", dx=9, fontSize=11, color="#223D53"
-            ).encode(x=axis, text=alt.Text("late_rate_pct:Q", format=".2f"))
-            chart = (dot + labels).properties(height=330).configure(
+            # A neutral connector shows distance from the common benchmark.
+            connector = base.mark_bar(
+                height=3, color="#B7C8D6", cornerRadius=2
+            ).encode(
+                x=x_axis, x2=alt.datum(0)
+            )
+            dots = base.mark_circle(
+                size=150, stroke="#FFFFFF", strokeWidth=1.5
+            ).encode(x=x_axis, color=color)
+            right_text = base.transform_filter(
+                alt.datum.delta_pp >= 0
+            ).mark_text(
+                align="left", dx=11, fontSize=11, fontWeight="bold",
+                color="#213C52"
+            ).encode(
+                x=x_axis, text=alt.Text("difference:N")
+            )
+            left_text = base.transform_filter(
+                alt.datum.delta_pp < 0
+            ).mark_text(
+                align="right", dx=-11, fontSize=11, fontWeight="bold",
+                color="#213C52"
+            ).encode(
+                x=x_axis, text=alt.Text("difference:N")
+            )
+            chart = alt.layer(
+                zero, connector, dots, right_text, left_text
+            ).properties(
+                height=345
+            ).configure(
                 background="#FFFFFF"
-            ).configure_view(stroke=None).configure_axis(
-                labelColor="#172D43", titleColor="#172D43",
-                gridColor="#E7EDF3",
+            ).configure_view(
+                stroke=None
+            ).configure_axis(
+                labelColor="#223A50", titleColor="#223A50",
+                grid=False,
             )
             st.altair_chart(chart, use_container_width=True, theme=None)
             st.caption(
-                "Chọn 10 tuyến có nhiều chuyến đủ điều kiện đánh giá nhất, "
-                "sắp xếp theo tỷ lệ trễ. Trục tỷ lệ được thu gọn để thấy khác biệt; "
-                "không dùng chiều dài thanh để hàm ý tỷ lệ bắt đầu từ 0. "
-                "Tỷ lệ trễ = chuyến đủ điều kiện có delay_minutes > 0 / "
-                "tổng chuyến đủ điều kiện của tuyến."
+                "10 tuyến có nhiều chuyến đủ điều kiện nhất, xếp theo tỷ lệ trễ "
+                "từ cao xuống thấp. Màu cam: cao hơn tỷ lệ chung; xanh ngọc: thấp hơn. "
+                "Chênh lệch được tính bằng điểm phần trăm, không phải phần trăm thay đổi."
             )
 
 note("Điểm GPS có vận tốc thấp gần cơ sở có thể liên quan hoạt động bốc dỡ hoặc dừng chờ. Điểm chậm trên đường là tín hiệu cần kiểm tra, không chứng minh ùn tắc giao thông.")
