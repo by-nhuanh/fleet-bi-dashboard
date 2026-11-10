@@ -357,6 +357,7 @@ else:
             baseline_rate = 100.0 * total_late / total_eligible
             compare = valid.nlargest(10, "eligible").copy()
             compare["delta_pp"] = compare["late_rate_pct"] - baseline_rate
+            compare["zero"] = 0.0
             compare = compare.sort_values(
                 ["late_rate_pct", "eligible"], ascending=[False, False]
             ).reset_index(drop=True)
@@ -418,7 +419,7 @@ else:
             connector = base.mark_bar(
                 height=3, color="#B7C8D6", cornerRadius=2
             ).encode(
-                x=x_axis, x2=alt.datum(0)
+                x=x_axis, x2="zero:Q"
             )
             dots = base.mark_circle(
                 size=150, stroke="#FFFFFF", strokeWidth=1.5
