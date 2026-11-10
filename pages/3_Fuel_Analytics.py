@@ -160,125 +160,178 @@ if len(trace)>point_limit:
     st.caption(f"Chuỗi có {len(trace):,} điểm; biểu đồ hiển thị {len(display_trace):,} "
                "điểm thực (lấy mẫu theo thứ tự và luôn giữ điểm có nhãn).")
 
-section("Diễn biến nhiên liệu và vận tốc", "NHIÊN LIỆU · VẬN TỐC · ĐỘNG CƠ")
-st.caption("Dữ liệu thời gian trong bản DDS triển khai có độ phân giải đến phút. "
-           "Trục ngang dùng thứ tự điểm đo để tránh gộp các bản ghi cùng phút.")
+section("Khảo sát tín hiệu theo chuyến")
+st.caption(
+    "Các phép đo được sắp theo ngày, phút và ID bản tin. Trục ngang là thứ tự "
+    "bản ghi GPS để giữ riêng những phép đo cùng phút."
+)
 
-def line(data,field,color,y_label):
-    base=alt.Chart(data).encode(
-        x=alt.X("point_index:Q",title="Thứ tự điểm đo"),
-        tooltip=[
-            alt.Tooltip("event_minute:T",title="Thời gian",format="%d/%m/%Y %H:%M"),
-            alt.Tooltip("point_index:Q",title="Điểm",format=","),
-            alt.Tooltip(field+":Q",title=y_label,format=".2f"),
-            alt.Tooltip("anomaly_type:N",title="Nhãn"),
-        ],
-    )
-    return base.mark_line(color=color,strokeWidth=2).encode(
-        y=alt.Y(field+":Q",title=y_label)
-    ).properties(height=240).configure(
-        background="#FFFFFF"
-    ).configure_view(stroke=None).configure_axis(
-        labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2"
-    )
-
-c1,c2=st.columns(2,gap="large")
-with c1:
-    with st.container(border=False, key="chart_panel_fuel_level"):
-        st.markdown("**Mức nhiên liệu trong bình (%)**")
-        st.altair_chart(line(display_trace,"fuel_level_pct","#2F9183","Nhiên liệu (%)"),
-                        use_container_width=True,theme=None)
-with c2:
-    with st.container(border=False, key="chart_panel_speed"):
-        st.markdown("**Vận tốc phương tiện (km/h)**")
-        st.altair_chart(line(display_trace,"speed_kmh","#3B85AB","Vận tốc (km/h)"),
-                        use_container_width=True,theme=None)
-
-with st.container(border=False, key="chart_panel_engine"):
-    st.markdown("**Trạng thái động cơ và các điểm cần xác minh**")
-    status=display_trace[["point_index","engine_status"]].copy()
-    status["engine_status"]=status["engine_status"].fillna("UNKNOWN")
-    engine_chart=alt.Chart(status).mark_circle(size=40,color="#63809D").encode(
-        x=alt.X("point_index:Q",title="Thứ tự điểm đo"),
-        y=alt.Y("engine_status:N",title="Trạng thái ghi nhận"),
-        tooltip=["point_index:Q","engine_status:N"]
-    ).properties(height=145).configure(background="#FFFFFF").configure_view(
-        stroke=None
-    ).configure_axis(labelColor="#111827",titleColor="#111827",gridColor="#E6EEF2")
-    st.altair_chart(engine_chart,use_container_width=True,theme=None)
-
-# A single aligned diagnostic view allows comparing sensor changes at
-# the same GPS observation, without inventing a timestamp ordering.
-section("Đối chiếu nhiên liệu, vận tốc và trạng thái động cơ")
-with st.container(border=False, key="chart_panel_sensor_comparison"):
-    st.markdown(
-        '<div class="chart-heading">Diễn biến tín hiệu trên cùng trục điểm đo</div>',
-        unsafe_allow_html=True,
-    )
-    st.caption(
-        "Ba dải biểu đồ dùng chung thứ tự bản ghi GPS. Vạch cam thể hiện vị trí "
-        "được gắn nhãn cần kiểm tra; không phải kết luận nguyên nhân."
-    )
-    comparison = display_trace[[
-        "point_index", "fuel_level_pct", "speed_kmh", "engine_status", "anomaly_type"
-    ]].copy()
-    comparison["engine_status"] = comparison["engine_status"].fillna("Không xác định")
-    alert_positions = flagged[["point_index", "anomaly_type"]].drop_duplicates(
-        subset=["point_index"]
-    ).head(120)
-    common_x = alt.X("point_index:Q", title="Thứ tự điểm GPS")
-    alert_rule = alt.Chart(alert_positions).mark_rule(
-        color="#CD8755", strokeDash=[3, 4], opacity=0.6
-    ).encode(
-        x=common_x,
-        tooltip=[
-            alt.Tooltip("point_index:Q", title="Điểm GPS"),
-            alt.Tooltip("anomaly_type:N", title="Nhãn"),
-        ]
-    )
-    fuel_line = alt.Chart(comparison).mark_line(
-        color="#178B83", strokeWidth=2
-    ).encode(
-        x=common_x,
-        y=alt.Y("fuel_level_pct:Q", title="Nhiên liệu (%)"),
-        tooltip=[
-            alt.Tooltip("point_index:Q", title="Điểm GPS"),
-            alt.Tooltip("fuel_level_pct:Q", title="Nhiên liệu (%)", format=".2f"),
-        ],
-    )
-    speed_line = alt.Chart(comparison).mark_line(
-        color="#337FB6", strokeWidth=2
-    ).encode(
-        x=common_x,
-        y=alt.Y("speed_kmh:Q", title="Vận tốc (km/h)"),
-        tooltip=[
-            alt.Tooltip("point_index:Q", title="Điểm GPS"),
-            alt.Tooltip("speed_kmh:Q", title="Vận tốc (km/h)", format=".2f"),
-        ],
-    )
-    engine_points = alt.Chart(comparison).mark_tick(
-        thickness=2, size=17, color="#8062B5"
-    ).encode(
-        x=common_x,
-        y=alt.Y("engine_status:N", title="Động cơ"),
-        tooltip=[
-            alt.Tooltip("point_index:Q", title="Điểm GPS"),
-            alt.Tooltip("engine_status:N", title="Trạng thái"),
-        ],
-    )
-    aligned = alt.vconcat(
-        alt.layer(fuel_line, alert_rule).properties(height=140),
-        alt.layer(speed_line, alert_rule).properties(height=140),
-        alt.layer(engine_points, alert_rule).properties(height=105),
-        spacing=17,
-    ).resolve_scale(x="shared").configure(
-        background="#FFFFFF"
-    ).configure_view(
+def chart_style(chart):
+    return chart.configure(background="#FFFFFF").configure_view(
         stroke=None
     ).configure_axis(
-        labelColor="#172D43", titleColor="#172D43", gridColor="#E7EEF3"
+        labelColor="#172D43", titleColor="#172D43",
+        gridColor="#E8EFF4", labelFontSize=11
     )
-    st.altair_chart(aligned, use_container_width=True, theme=None)
+
+def series_line(data, field, color, title, height=155):
+    return alt.Chart(data).mark_line(
+        color=color, strokeWidth=2.1
+    ).encode(
+        x=alt.X("point_index:Q", title="Thứ tự điểm GPS"),
+        y=alt.Y(field + ":Q", title=title, scale=alt.Scale(zero=False)),
+        tooltip=[
+            alt.Tooltip("point_index:Q", title="Điểm GPS", format=","),
+            alt.Tooltip("event_minute:T", title="Thời gian", format="%d/%m/%Y %H:%M"),
+            alt.Tooltip(field + ":Q", title=title, format=".2f"),
+            alt.Tooltip("anomaly_type:N", title="Nhãn ghi nhận"),
+        ],
+    ).properties(height=height)
+
+# Full-trip context is deliberately compact. Exact evidence is examined
+# in the focused window below.
+section("Toàn cảnh hành trình")
+with st.container(border=False, key="chart_panel_trip_overview"):
+    overview_left, overview_right = st.columns(2, gap="large")
+    with overview_left:
+        st.markdown('<div class="chart-heading">Nhiên liệu trong toàn chuyến</div>',
+                    unsafe_allow_html=True)
+        st.altair_chart(
+            chart_style(series_line(
+                display_trace, "fuel_level_pct", "#178E83", "Nhiên liệu (%)", 170
+            )), use_container_width=True, theme=None,
+        )
+    with overview_right:
+        st.markdown('<div class="chart-heading">Vận tốc trong toàn chuyến</div>',
+                    unsafe_allow_html=True)
+        st.altair_chart(
+            chart_style(series_line(
+                display_trace, "speed_kmh", "#337FB6", "Vận tốc (km/h)", 170
+            )), use_container_width=True, theme=None,
+        )
+    st.caption(
+        f"Toàn chuyến có {len(trace):,} điểm GPS; đang vẽ {len(display_trace):,} "
+        "điểm thực. Cần phóng vào điểm có nhãn để đánh giá sự thay đổi ngắn hạn."
+    )
+
+section("Phóng to vùng cần xác minh")
+with st.container(border=False, key="filter_bar_focus"):
+    focus_cols = st.columns([2, 1], gap="large")
+    with focus_cols[0]:
+        if flagged.empty:
+            selected_point = int(trace["point_index"].iloc[len(trace)//2])
+            st.info("Chuyến không có điểm được gắn nhãn; hiển thị vùng giữa chuyến.")
+        else:
+            flagged_ids = flagged["point_index"].astype(int).tolist()
+            selected_point = st.selectbox(
+                "Điểm cảnh báo cần xem",
+                flagged_ids,
+                format_func=lambda p: (
+                    f"Điểm {p:,} · " +
+                    str(trace.loc[trace["point_index"].eq(p), "anomaly_type"].iloc[0])
+                ),
+                key="fuel_focus_alert",
+            )
+    with focus_cols[1]:
+        radius = st.select_slider(
+            "Số điểm quan sát mỗi phía", options=[30, 50, 100, 200],
+            value=100, key="fuel_focus_radius",
+        )
+
+window = trace.loc[
+    trace["point_index"].between(
+        max(1, selected_point-radius), selected_point+radius
+    )
+].copy()
+selected_row = trace.loc[trace["point_index"].eq(selected_point)].iloc[0]
+st.markdown(
+    f'<div class="insight-strip"><strong>Điểm GPS {selected_point:,}</strong> · '
+    f'Nhãn: {selected_row["anomaly_type"] if pd.notna(selected_row["anomaly_type"]) else "Không có nhãn"}'
+    f' · Vận tốc: {selected_row["speed_kmh"] if pd.notna(selected_row["speed_kmh"]) else "N/A"} km/h'
+    f' · Động cơ: {selected_row["engine_status"] if pd.notna(selected_row["engine_status"]) else "Không xác định"}'
+    '</div>', unsafe_allow_html=True,
+)
+
+# Only the selected anomaly is highlighted; other labels remain available
+# in the underlying point table.
+selected_rule = alt.Chart(pd.DataFrame({
+    "point_index": [selected_point]
+})).mark_rule(
+    color="#D58C4D", strokeDash=[5, 4], strokeWidth=2
+).encode(x="point_index:Q")
+shared_x = alt.X(
+    "point_index:Q", title="Thứ tự điểm GPS",
+    scale=alt.Scale(domain=[
+        int(window["point_index"].min()), int(window["point_index"].max())
+    ]),
+)
+fuel_chart = alt.Chart(window).mark_line(
+    color="#159487", strokeWidth=2.4
+).encode(
+    x=shared_x,
+    y=alt.Y("fuel_level_pct:Q", title="Nhiên liệu (%)",
+            scale=alt.Scale(zero=False)),
+    tooltip=[
+        alt.Tooltip("point_index:Q", title="Điểm GPS", format=","),
+        alt.Tooltip("fuel_level_pct:Q", title="Nhiên liệu (%)", format=".2f"),
+    ],
+)
+speed_chart = alt.Chart(window).mark_line(
+    color="#337FB6", strokeWidth=2.4
+).encode(
+    x=shared_x,
+    y=alt.Y("speed_kmh:Q", title="Vận tốc (km/h)",
+            scale=alt.Scale(zero=True)),
+    tooltip=[
+        alt.Tooltip("point_index:Q", title="Điểm GPS", format=","),
+        alt.Tooltip("speed_kmh:Q", title="Vận tốc", format=".2f"),
+    ],
+)
+# Each categorical state is a colored segment, rather than thousands of
+# misleading connected dots. Boundaries follow observed point order.
+engine_window = window[["point_index", "engine_status"]].copy()
+engine_window["engine_status"] = (
+    engine_window["engine_status"].fillna("Unknown").astype(str)
+)
+engine_window["next_point"] = engine_window["point_index"] + 1
+engine_bands = alt.Chart(engine_window).mark_rect(
+    opacity=.88
+).encode(
+    x=shared_x,
+    x2="next_point:Q",
+    y=alt.Y("engine_status:N", title="Trạng thái động cơ"),
+    color=alt.Color(
+        "engine_status:N", title="Động cơ",
+        scale=alt.Scale(
+            domain=["Running", "Idling", "Off", "Unknown"],
+            range=["#6B76B6", "#E2A05E", "#8795A3", "#B4BEC9"],
+        ),
+        legend=alt.Legend(orient="bottom"),
+    ),
+    tooltip=[
+        alt.Tooltip("point_index:Q", title="Điểm GPS"),
+        alt.Tooltip("engine_status:N", title="Trạng thái"),
+    ],
+)
+comparison = alt.vconcat(
+    alt.layer(fuel_chart, selected_rule).properties(height=150),
+    alt.layer(speed_chart, selected_rule).properties(height=150),
+    alt.layer(engine_bands, selected_rule).properties(height=95),
+    spacing=13,
+).resolve_scale(x="shared")
+with st.container(border=False, key="chart_panel_focus_sensors"):
+    st.markdown(
+        '<div class="chart-heading">Ba tín hiệu tại vùng quan sát</div>',
+        unsafe_allow_html=True,
+    )
+    st.altair_chart(
+        chart_style(comparison), use_container_width=True, theme=None,
+    )
+    st.caption(
+        "Vạch cam chỉ điểm GPS đang chọn. Nhiên liệu, vận tốc và trạng thái "
+        "động cơ được đối chiếu cùng thứ tự điểm đo; đây là hỗ trợ kiểm tra, "
+        "không phải kết luận tự động về nguyên nhân."
+    )
 
 # Source purchase transactions for the selected trip: cross-check evidence only.
 @st.cache_data(ttl=600)
