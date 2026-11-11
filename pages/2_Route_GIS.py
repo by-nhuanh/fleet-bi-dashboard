@@ -37,7 +37,12 @@ def lookups():
 
 bounds,routes=lookups()
 page_header(11, "Phân tích tuyến đường",
-    "Theo dõi hành trình GPS, điểm ghi nhận vận tốc thấp và kết quả vận hành theo tuyến.")
+    "Khảo sát dữ liệu vị trí GPS mô phỏng và hiệu quả giao hàng theo tuyến.")
+st.info(
+    "Nguồn GPS là dữ liệu **mô phỏng bằng nội suy đường thẳng**, "
+    "không phải hành trình hay tình trạng giao thông đo thực tế. "
+    "Các cụm điểm vận tốc thấp chỉ minh họa phương pháp phân tích không gian."
+)
 
 if bounds[0] is None:
     st.warning("Không tìm thấy bản ghi GPS.")
@@ -140,7 +145,7 @@ else:
         f"Bản đồ tổng hợp {len(spots):,} ô tọa độ (làm tròn 0,01 độ), "
         f"hiển thị tối đa 12.000 ô có nhiều điểm nhất. "
         f"Ngưỡng đang chọn: {threshold} km/h. "
-        "Đây là mật độ xe chạy chậm/dừng, không phải kết luận tắc đường."
+        "Đây là mật độ điểm GPS mô phỏng, không phải dữ liệu ùn tắc giao thông thực tế."
     )
 
 # GPS hotspots are observation-density cells, not verified traffic congestion.
@@ -180,7 +185,7 @@ if not spots.empty:
             )
     st.caption(
         "Ô tọa độ được làm tròn 0,01 độ; thống kê theo số lần ghi nhận GPS, "
-        "không phải số xe khác nhau hoặc số vụ ùn tắc."
+        "không phải số xe khác nhau hoặc số vụ ùn tắc thực tế."
     )
 
 @st.cache_data(ttl=600)
@@ -247,7 +252,7 @@ else:
         st.caption(
             f"Chuyến {selected_trip}: {len(gps_trip):,} điểm GPS trong khoảng ngày; "
             f"bản đồ hiển thị {len(gps_map):,} điểm đo thực tế. "
-            "Các dấu chấm là vị trí ghi nhận, không suy ra tuyến đường được quy hoạch."
+            "Các dấu chấm là tọa độ mô phỏng bằng nội suy đường thẳng; không biểu thị lộ trình trên mạng lưới đường bộ."
         )
 
 @st.cache_data(ttl=600)
