@@ -119,11 +119,13 @@ Bản tổng hợp máy đọc được: [audit/data_quality_report.json](audit/
 
 Kết quả ghi nhận:
 - 8 bảng DDS đúng số lượng kỳ vọng; 85.410 chuyến, 77.959 chuyến hợp lệ, 51.970 chuyến giao trễ hợp lệ; 1.435.571 điểm GPS có mã bản tin duy nhất và liên kết đúng chuyến.
-- **204/196.442 giao dịch nhiên liệu** có `vehicle_key` khác xe gắn với `trip_id`, tương ứng **97.440,92 USD**; đây là ngoại lệ **chưa được giải quyết ở nguồn**. Ứng dụng vẫn bảo toàn chúng trong tổng chi phí chính thức và gắn nhãn cần kiểm tra, không tự chuyển xe hoặc xóa chi phí.
+- **204/196.442 giao dịch nhiên liệu** có `vehicle_key` khác với khóa gắn trên chuyến (97.440,92 USD), nhưng **204/204 vẫn cùng `truck_id`**. `Dim_Vehicle` có **241 khóa phiên bản cho 121 mã xe nghiệp vụ**. Vì vậy, không phải lỗi gán sai xe; đây là khác biệt khóa thay thế/phiên bản chiều phương tiện. Tổng chi phí được giữ nguyên. Chưa có thông tin hiệu lực phiên bản để khẳng định cách chọn khóa thay thế tại từng thời điểm là tối ưu.
 - Chuyến `TRIP00078810` có 3.097 điểm GPS; chỉ 4 lần thay đổi vận tốc trên 0,01 km/h giữa các điểm liên tiếp. Mức nhiên liệu giảm trung bình khoảng 0,02326 điểm phần trăm mỗi điểm. Dạng đường thẳng phản ánh chuỗi DDS lưu trữ; **chưa đủ chứng cứ** xác nhận tín hiệu thực tế hay nguồn phát sinh đã nội suy/làm trơn.
 - Sáu bản tin `IDLE_EXTENDED` của chuyến trên nằm ở 17:34–17:39 ngày 08/10/2024; nhãn không tự chứng minh toàn bộ thời gian nổ máy chờ hay nguyên nhân tiêu hao.
 
 **Phân biệt rõ:** dữ liệu đạt quy tắc toàn vẹn khóa/kiểu/miền giá trị **không đồng nghĩa** tín hiệu cảm biến đã được kiểm định độ chính xác vật lý hoặc bất thường đã được xác minh thực địa.
+
+Bản điều tra chuyên sâu: [audit/exceptions_investigation.json](audit/exceptions_investigation.json). Trên 746 chuyến GPS, **598 chuyến có tối đa 4 lần thay đổi vận tốc trên 0,01 km/h**, **566 chuyến có độ lệch chuẩn thay đổi nhiên liệu theo điểm dưới 0,001**, và **không chuyến nào có mức nhiên liệu tăng**. Những đặc điểm này cần truy xuất dữ liệu cảm biến trước ETL để xác định liệu chuỗi được mô phỏng, làm trơn hay chỉ ghi nhận không đầy đủ sự kiện mua nhiên liệu. Không tự sửa giá trị GPS trong bản DDS triển khai.
 
 ## 6. Kiểm thử và lưu ý bàn giao
 
