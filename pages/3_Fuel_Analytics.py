@@ -46,20 +46,29 @@ page_header(12, "Phân tích nhiên liệu",
 @st.cache_data(ttl=600)
 def fuel_consistency_summary():
     return con.execute("""
-        SELECT COUNT(*) FILTER (WHERE f.vehicle_key <> t.vehicle_key) AS mismatch_count,
-               COALESCE(SUM(CASE WHEN f.vehicle_key <> t.vehicle_key
-                 THEN f.total_cost_usd ELSE 0 END),0) AS mismatch_cost
+        SELECT
+            COUNT(*) FILTER (WHERE f.vehicle_key IS DISTINCT FROM t.vehicle_key)
+                AS surrogate_key_differences,
+            COUNT(*) FILTER (WHERE pv.truck_id IS DISTINCT FROM tv.truck_id)
+                AS different_truck_ids
         FROM dds.Fact_Fuel_Purchases f
-        JOIN dds.Fact_Trips t ON f.trip_id = t.trip_id
+        JOIN dds.Fact_Trips t ON f.trip_id=t.trip_id
+        LEFT JOIN dds.Dim_Vehicle pv ON f.vehicle_key=pv.vehicle_key
+        LEFT JOIN dds.Dim_Vehicle tv ON t.vehicle_key=tv.vehicle_key
     """).fetchone()
 
-mismatch_count,mismatch_cost=fuel_consistency_summary()
-if mismatch_count:
+surrogate_differences,actual_vehicle_differences=fuel_consistency_summary()
+if actual_vehicle_differences:
     st.warning(
-        f"Đối soát DDS: {mismatch_count:,} giao dịch mua nhiên liệu có mã xe "
-        f"khác mã xe của chuyến liên kết (tổng chi phí {mismatch_cost:,.2f} USD). "
-        "Những giao dịch này vẫn được bảo toàn trong KPI chi phí, nhưng phải "
-        "xác minh trước khi quy trách nhiệm cho phương tiện."
+        f"Đối soát phương tiện: {actual_vehicle_differences:,} giao dịch có "
+        "mã xe truck_id khác với chuyến liên kết, cần xác minh nguồn."
+    )
+elif surrogate_differences:
+    st.caption(
+        f"Đối soát phương tiện: {surrogate_differences:,} giao dịch có "
+        "vehicle_key khác giữa giao dịch và chuyến, nhưng truck_id vẫn khớp. "
+        "Đây là khác khóa phiên bản trong chiều phương tiện, "
+        "không được kết luận sai xe."
     )
 
 section("Tổng quan dữ liệu cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
@@ -400,13 +409,18 @@ def trip_fuel_purchases(trip_id):
         SELECT f.fuel_purchase_id, d.full_date AS purchase_date,
                f.liters_purchased, f.total_cost_usd, v.truck_id AS purchase_vehicle,
                trip_vehicle.truck_id AS trip_vehicle,
-               CASE WHEN f.vehicle_key = t.vehicle_key THEN 'Khớp xe'
-                    ELSE 'Lệch xe - cần xác minh' END AS vehicle_reconciliation
+               CASE WHEN pv.truck_id IS DISTINCT FROM tv.truck_id
+                    THEN 'Khác mã xe - cần xác minh'
+                    WHEN f.vehicle_key IS DISTINCT FROM t.vehicle_key
+                    THEN 'Cùng xe, khác khóa phiên bản'
+                    ELSE 'Khớp khóa phương tiện' END AS vehicle_reconciliation
         FROM dds.Fact_Fuel_Purchases f
         JOIN dds.Fact_Trips t ON f.trip_id=t.trip_id
         LEFT JOIN dds.Dim_Date d ON f.date_key=d.date_key
         LEFT JOIN dds.Dim_Vehicle v ON f.vehicle_key=v.vehicle_key
         LEFT JOIN dds.Dim_Vehicle trip_vehicle ON t.vehicle_key=trip_vehicle.vehicle_key
+        LEFT JOIN dds.Dim_Vehicle pv ON f.vehicle_key=pv.vehicle_key
+        LEFT JOIN dds.Dim_Vehicle tv ON t.vehicle_key=tv.vehicle_key
         WHERE f.trip_id=?
         ORDER BY d.full_date,f.fuel_purchase_id
     """,[trip_id]).df()
@@ -429,11 +443,20 @@ with st.container(border=False, key="chart_panel_fuel_purchases"):
             "trip_vehicle":"Xe của chuyến",
             "vehicle_reconciliation":"Đối soát phương tiện",
         }),hide_index=True,use_container_width=True)
-        flagged_purchase_count=int(purchases["vehicle_reconciliation"].ne("Khớp xe").sum())
-        if flagged_purchase_count:
+        actual_mismatch_count=int(
+            purchases["vehicle_reconciliation"].eq("Khác mã xe - cần xác minh").sum()
+        )
+        if actual_mismatch_count:
             st.warning(
-                f"Chuyến này có {flagged_purchase_count} giao dịch lệch phương tiện. "
-                "Cần đối chiếu chứng từ và mã xe trước khi dùng làm bằng chứng."
+                f"Chuyến này có {actual_mismatch_count} giao dịch khác mã xe truck_id. "
+                "Cần đối chiếu chứng từ trước khi sử dụng làm bằng chứng."
+            )
+        elif purchases["vehicle_reconciliation"].eq(
+            "Cùng xe, khác khóa phiên bản"
+        ).any():
+            st.caption(
+                "Có giao dịch dùng khóa phiên bản Dim_Vehicle khác với chuyến, "
+                "nhưng mã xe truck_id vẫn trùng khớp."
             )
         st.caption(
             "Các giao dịch được liên kết bằng trip_id. Lượng nhiên liệu mua không đồng nhất "
