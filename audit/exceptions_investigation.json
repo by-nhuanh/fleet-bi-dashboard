@@ -11,6 +11,18 @@
       "total_liters": 95893.59000000003,
       "null_key_rows": 0
     },
+    "surrogate_vs_business_key": {
+      "mismatched_surrogate_rows": 204,
+      "same_truck_id_rows": 204,
+      "different_truck_id_rows": 0,
+      "affected_truck_ids": 61
+    },
+    "dimension_key_reuse": {
+      "rows": 241,
+      "truck_ids": 121,
+      "extra_vehicle_versions": 120,
+      "null_truck_ids": 0
+    },
     "by_purchase_month": [
       {
         "year": 2023,
