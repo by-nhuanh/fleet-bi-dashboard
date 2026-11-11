@@ -1,0 +1,184 @@
+{
+  "source": "database/fleet_analysis.duckdb",
+  "scope": "All deployed DDS rows; observations are not corrections",
+  "tables": {
+    "Fact_Trips": {
+      "actual": 85410,
+      "expected": 85410,
+      "pass": true
+    },
+    "Fact_GPS_Points": {
+      "actual": 1435571,
+      "expected": 1435571,
+      "pass": true
+    },
+    "Fact_Fuel_Purchases": {
+      "actual": 196442,
+      "expected": 196442,
+      "pass": true
+    },
+    "Dim_Date": {
+      "actual": 2192,
+      "expected": 2192,
+      "pass": true
+    },
+    "Dim_Time": {
+      "actual": 1441,
+      "expected": 1441,
+      "pass": true
+    },
+    "Dim_Route": {
+      "actual": 59,
+      "expected": 59,
+      "pass": true
+    },
+    "Dim_Location": {
+      "actual": 51,
+      "expected": 51,
+      "pass": true
+    },
+    "Dim_Vehicle": {
+      "actual": 241,
+      "expected": 241,
+      "pass": true
+    }
+  },
+  "tests": {
+    "table_counts": true,
+    "expected_kpis": true,
+    "gps_relationships": true,
+    "gps_unique_ids": true,
+    "fuel_relationships": true,
+    "fuel_vehicle_consistency": false
+  },
+  "gps": {
+    "integrity": {
+      "gps_rows": 1435571,
+      "unique_message_ids": 1435571,
+      "trips_with_gps": 746,
+      "unmatched_trips": 0,
+      "vehicle_mismatches": 0,
+      "negative_speed": 0,
+      "invalid_fuel_percent": 0,
+      "invalid_coordinates": 0
+    },
+    "anomaly_distribution": [
+      {
+        "anomaly_type": "NORMAL",
+        "points": 1435491,
+        "trips": 746
+      },
+      {
+        "anomaly_type": "IDLE_EXTENDED",
+        "points": 36,
+        "trips": 6
+      },
+      {
+        "anomaly_type": "GPS_JUMP_RECOVERY",
+        "points": 16,
+        "trips": 16
+      },
+      {
+        "anomaly_type": "FUEL_THEFT",
+        "points": 15,
+        "trips": 15
+      },
+      {
+        "anomaly_type": "FUEL_RECEIPT_MISMATCH",
+        "points": 13,
+        "trips": 13
+      }
+    ],
+    "engine_distribution": [
+      {
+        "engine_status": "Running",
+        "points": 1435505
+      },
+      {
+        "engine_status": "Idling",
+        "points": 36
+      },
+      {
+        "engine_status": "Off",
+        "points": 30
+      }
+    ],
+    "clock_resolution": {
+      "rows": 1435571,
+      "unresolved_time_keys": 0,
+      "midnight_time_rows": 1015
+    },
+    "value_repetition": {
+      "rows": 1435571,
+      "transitions": 1434825,
+      "repeated_speed": 327991,
+      "around_15_kmh": 6968,
+      "fuel_transitions": 1434825,
+      "fuel_increases": 0,
+      "fuel_decreases": 1340938,
+      "fuel_unchanged": 93887
+    }
+  },
+  "fuel": {
+    "purchases": {
+      "transactions": 196442,
+      "distinct_ids": 196442,
+      "negative_values": 0,
+      "total_cost_usd": 95592992.03999925
+    },
+    "vehicle_reconciliation": {
+      "mismatch_rows": 204,
+      "mismatch_cost_usd": 97440.91999999998,
+      "unmatched_trip_rows": 0
+    }
+  },
+  "overview": {
+    "trips": 85410,
+    "eligible": 77959,
+    "late": 51970
+  },
+  "trip_case": {
+    "trip_id": "TRIP00078810",
+    "signals": {
+      "gps_points": 3097,
+      "unique_speed_values": 426,
+      "unique_fuel_values": 3096,
+      "min_speed": 0.0,
+      "max_speed": 15.63,
+      "min_fuel_pct": 9.978,
+      "max_fuel_pct": 82.0,
+      "exactly_15_kmh_points": 0,
+      "idling_points": 6,
+      "idle_alert_points": 6,
+      "distinct_date_minute_keys": 3096
+    },
+    "ordering_and_fuel": {
+      "transitions": 3096,
+      "min_fuel_change": -0.02370000000000516,
+      "max_fuel_change": 0.0,
+      "mean_fuel_change": -0.02326291989664082,
+      "stddev_fuel_change": 0.0008858278373407391,
+      "speed_changes": 4,
+      "fuel_increases": 0,
+      "idle_alert_points": 6
+    },
+    "alert_span": [
+      {
+        "anomaly_type": "IDLE_EXTENDED",
+        "points": 6,
+        "first_date": "2024-10-08",
+        "last_date": "2024-10-08",
+        "min_minute_in_day": 1054,
+        "max_minute_in_day": 1059,
+        "distinct_date_minute_keys": 6
+      }
+    ]
+  },
+  "notes": [
+    "Repeated GPS values are valid database values but cannot by themselves prove physical sensor accuracy.",
+    "Datetime resolution is one minute; consecutive messages in the same minute must not be interpreted as one minute apart.",
+    "Fuel purchase rows with vehicle_key inconsistent with Fact_Trips must be explicitly flagged for review, not silently discarded.",
+    "GPS labels are observations, not confirmed operational incidents.",
+    "No synthetic signal smoothing, interpolation or automatic label correction is performed."
+  ]
+}
