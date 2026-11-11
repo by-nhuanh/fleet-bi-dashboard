@@ -5,7 +5,7 @@
 **Dashboard trực tuyến:** https://fleet-bi-dashboard.streamlit.app/  
 **Mã nguồn:** https://github.com/by-nhuanh/fleet-bi-dashboard
 
-> Dashboard phục vụ phân tích dữ liệu lịch sử, **không phải hệ thống giám sát GPS thời gian thực**. Dữ liệu và biểu đồ được truy vấn từ các cơ sở dữ liệu DDS trong repository, không tự tạo số liệu minh họa.
+> Dashboard phục vụ phân tích dữ liệu lịch sử, **không phải hệ thống giám sát GPS thời gian thực**. KPI vận hành được truy vấn từ DDS; riêng **GPS/IoT là dữ liệu mô phỏng** được tạo bởi notebook `04_mock_iot_generator.ipynb`, sau đó xử lý qua pipeline 06 và 07. Không diễn giải các vị trí, tốc độ, tín hiệu nhiên liệu hay cảnh báo GPS thành phép đo/sự cố thực địa.
 
 ## 1. Các trang phân tích
 
@@ -67,12 +67,20 @@ Các giá trị tham chiếu đã được đối soát cho phạm vi chuyến t
 
 **Lưu ý:** Các giá trị trên là mốc đối soát toàn kỳ, **không phải số cố định** khi người xem áp dụng bộ lọc. Trang GIS/Fuel chỉ phân tích các chuyến có dữ liệu GPS; không suy rộng kết luận cho toàn bộ chuyến.
 
+### Nguồn gốc GPS/IoT — đã xác minh từ code và đầu ra sinh dữ liệu
+
+Dữ liệu GPS không phải tín hiệu thiết bị thực. Notebook `04_mock_iot_generator.ipynb` (thư mục `Project/notebooks` trên Google Drive) sử dụng `seed=42`, khoảng lấy mẫu **60 giây**, lựa chọn 1.000 chuyến để mô phỏng; **746 chuyến sinh thành công, 254 chuyến bị từ chối**. Vị trí được nội suy **theo đường thẳng giữa hai tọa độ đầu-cuối**. Vận tốc tính theo khoảng cách giữa hai tọa độ mô phỏng; nhiên liệu tiêu hao theo một công thức đơn giản dựa trên quãng đường cộng những điều chỉnh tình huống. Các sự kiện `FUEL_THEFT`, `IDLE_EXTENDED`, `GPS_JUMP`, `FUEL_RECEIPT_MISMATCH` được **chủ động tạo** (scenario injection). Bản tin mang `is_synthetic=True` trong nguồn sinh.
+
+File `outputs/iot_mock/run_manifest.json` ghi nhận **1.435.587 bản tin đầu ra**; pipeline 06 xác thực/loại bản tin GPS Jump vượt ngưỡng và pipeline 07 chỉ nạp `is_gps_jump=FALSE` vào `Fact_GPS_Points`. Đã đối chiếu **1.435.587 − 16 = 1.435.571 bản ghi DDS**. Cơ cấu 80 điểm có nhãn trong DDS: `IDLE_EXTENDED` 36, `FUEL_THEFT` 15, `FUEL_RECEIPT_MISMATCH` 13, `GPS_JUMP_RECOVERY` 16. Tệp giải trình đối soát: [audit/gps_provenance.json](audit/gps_provenance.json).
+
+Do đó, heatmap chỉ là **bản đồ điểm mô phỏng**, không chứng minh ùn tắc thực tế. Đồ thị cảm biến mô tả **mô hình giả lập**, không thể dùng để suy đoán hỏng hóc, gian lận hay mức tiêu hao thực tế. Nếu báo cáo sử dụng các biểu đồ này phải gọi rõ là *thử nghiệm/giả lập để chứng minh khả năng phân tích và trực quan hóa trên kiến trúc BI*.
+
 ### Quy ước nghiệp vụ và giới hạn
 
 - **Cơ sở xuất phát:** sử dụng `Dim_Location` để phân nhóm hoạt động tại cơ sở; dữ liệu chưa chứng minh có một chiều **chi nhánh tổ chức** độc lập.
 - **Vận tốc thấp:** ngưỡng do người xem chọn; nhiều điểm tốc độ thấp **không tự động chứng minh ùn tắc**. Ô tọa độ làm tròn là thống kê mật độ điểm ghi nhận, không phải số sự cố giao thông.
 - **Cảnh báo nhiên liệu:** các nhãn `FUEL_THEFT`, `IDLE_EXTENDED`, `FUEL_RECEIPT_MISMATCH`… là tín hiệu có sẵn trong dữ liệu, **không phải kết luận gian lận/hỏng hóc đã được xác minh**. Việc phân loại nguyên nhân tự động cần ngưỡng được phê duyệt và kiểm định.
-- **Dữ liệu GPS:** có 746 chuyến ghi nhận GPS trên 85.410 chuyến trong kho; diễn giải phải ghi rõ giới hạn bao phủ.
+- **Dữ liệu GPS:** có 746 chuyến **được sinh bản tin GPS mô phỏng** trong kho trên tổng 85.410 chuyến; tỷ lệ này là phạm vi thử nghiệm của bộ sinh dữ liệu, không phải tỷ lệ phủ cảm biến trên đội xe thực tế.
 
 ## 4. Cấu trúc repository
 
