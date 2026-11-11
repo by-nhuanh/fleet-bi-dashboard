@@ -58,6 +58,16 @@ def main():
           FROM dds.Fact_Fuel_Purchases f
           LEFT JOIN dds.Fact_Trips t ON f.trip_id=t.trip_id
         """)
+        result["fuel"]["truck_id_reconciliation"]=one(con,"""
+          SELECT COUNT(*) FILTER(WHERE pv.truck_id IS DISTINCT FROM tv.truck_id)
+                    AS different_truck_ids,
+                 COUNT(*) FILTER(WHERE f.vehicle_key IS DISTINCT FROM t.vehicle_key)
+                    AS different_vehicle_version_keys
+          FROM dds.Fact_Fuel_Purchases f
+          JOIN dds.Fact_Trips t ON f.trip_id=t.trip_id
+          LEFT JOIN dds.Dim_Vehicle pv ON f.vehicle_key=pv.vehicle_key
+          LEFT JOIN dds.Dim_Vehicle tv ON t.vehicle_key=tv.vehicle_key
+        """)
         result["gps"]["integrity"]=one(con,"""
           SELECT COUNT(*) AS gps_rows, COUNT(DISTINCT g.message_id) AS unique_message_ids,
              COUNT(DISTINCT g.trip_id) AS trips_with_gps,
@@ -167,12 +177,12 @@ def main():
            "gps_relationships":result["gps"]["integrity"]["unmatched_trips"]==0,
            "gps_unique_ids":result["gps"]["integrity"]["gps_rows"]==result["gps"]["integrity"]["unique_message_ids"],
            "fuel_relationships":result["fuel"]["vehicle_reconciliation"]["unmatched_trip_rows"]==0,
-           "fuel_vehicle_consistency":result["fuel"]["vehicle_reconciliation"]["mismatch_rows"]==0
+           "fuel_vehicle_consistency":result["fuel"]["truck_id_reconciliation"]["different_truck_ids"]==0
         }
         result["notes"]=[
             "Repeated GPS values are valid database values but cannot by themselves prove physical sensor accuracy.",
             "Datetime resolution is one minute; consecutive messages in the same minute must not be interpreted as one minute apart.",
-            "Fuel purchase rows with vehicle_key inconsistent with Fact_Trips must be explicitly flagged for review, not silently discarded.",
+            "Fuel purchase vehicle_key differences must be compared by Dim_Vehicle.truck_id before classifying a business vehicle mismatch.",
             "GPS labels are observations, not confirmed operational incidents.",
             "No synthetic signal smoothing, interpolation or automatic label correction is performed."
         ]
