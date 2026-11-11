@@ -1,0 +1,57 @@
+{
+  "source": "Google Drive Project/outputs/iot_mock/run_manifest.json + notebook 04_mock_iot_generator.ipynb + pipelines 06,07",
+  "status": "provenance_confirmed_from_generator_and_etl_code",
+  "generator": {
+    "seed": 42,
+    "selected_trips": 1000,
+    "generated_trips": 746,
+    "rejected_trips": 254,
+    "interval_seconds": 60,
+    "emitted_rows": 1435587,
+    "is_synthetic": true,
+    "gps_geometry": "linear interpolation between trip start and end coordinates",
+    "fuel": "deterministic consumption proportional to interpolated travel distance plus scripted idle/theft scenarios",
+    "speed": "computed from successive generated coordinates and elapsed seconds"
+  },
+  "generator_labels": {
+    "normal": 1435491,
+    "fuel_theft": 15,
+    "fuel_receipt_mismatch": 13,
+    "gps_jump": 16,
+    "gps_jump_recovery": 16,
+    "idle_extended": 36
+  },
+  "pipeline": {
+    "stage_to_nds": "parse and validate simulated telemetry JSONL; recompute Haversine derived speed and isolate GPS jumps",
+    "nds_to_dds": "Fact_GPS_Points WHERE is_gps_jump = FALSE",
+    "removed_gps_jump": 16,
+    "dds_gps_points": 1435571
+  },
+  "reconciliation": {
+    "emitted_minus_removed": 1435571,
+    "expected_dds": 1435571,
+    "pass": true,
+    "dds_labels": {
+      "fuel_theft": 15,
+      "fuel_receipt_mismatch": 13,
+      "gps_jump_recovery": 16,
+      "idle_extended": 36,
+      "total": 80
+    }
+  },
+  "selected_trip": {
+    "trip_id": "TRIP00078810",
+    "scenario": "IDLE_EXTENDED",
+    "start_time": "2024-10-08T17:34:03.184760",
+    "end_time": "2024-10-08T17:39:03.184760",
+    "scripted_duration_minutes": 5
+  },
+  "interpretation": [
+    "GPS position interpolation is straight line, not a navigable road route.",
+    "Low-speed density cells arise from scripted simulation and cannot evidence real traffic congestion.",
+    "Sensor curves are deterministic modeled signals, not physically validated IoT measurements.",
+    "FUEL_RECEIPT_MISMATCH is an injected label, not full invoice reconciliation.",
+    "Removed GPS jump points still appear in generator anomaly events but not the final DDS GPS table.",
+    "GPS synthetic provenance is an established source property, not a guess based on chart appearance."
+  ]
+}
