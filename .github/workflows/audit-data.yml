@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/audit_data_quality.py"
+      - "scripts/investigate_exceptions.py"
       - ".github/workflows/audit-data.yml"
   workflow_dispatch:
 
@@ -24,12 +25,14 @@ jobs:
       - name: Install DuckDB
         run: pip install "duckdb>=1.1,<2"
       - name: Analyze deployed DDS
-        run: python scripts/audit_data_quality.py
+        run: |
+          python scripts/audit_data_quality.py
+          python scripts/investigate_exceptions.py
       - name: Publish reproducible aggregate audit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add audit/data_quality_report.json
+          git add audit/data_quality_report.json audit/exceptions_investigation.json
           if ! git diff --cached --quiet; then
             git commit -m "Publish latest DDS data quality audit"
             git push
