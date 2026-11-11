@@ -41,6 +41,25 @@ def main():
                  COUNT(*) FILTER (WHERE purchase_key IS NULL OR trip_key IS NULL) AS null_key_rows
           FROM mismatch
         """)[0]
+        result["fuel_mismatch"]["surrogate_vs_business_key"]=query(con,"""
+          SELECT COUNT(*) AS mismatched_surrogate_rows,
+                 COUNT(*) FILTER (WHERE v1.truck_id=v2.truck_id)
+                    AS same_truck_id_rows,
+                 COUNT(*) FILTER (WHERE v1.truck_id IS DISTINCT FROM v2.truck_id)
+                    AS different_truck_id_rows,
+                 COUNT(DISTINCT v1.truck_id) AS affected_truck_ids
+          FROM dds.Fact_Fuel_Purchases f
+          JOIN dds.Fact_Trips t ON t.trip_id=f.trip_id
+          LEFT JOIN dds.Dim_Vehicle v1 ON v1.vehicle_key=f.vehicle_key
+          LEFT JOIN dds.Dim_Vehicle v2 ON v2.vehicle_key=t.vehicle_key
+          WHERE f.vehicle_key IS DISTINCT FROM t.vehicle_key
+        """)[0]
+        result["fuel_mismatch"]["dimension_key_reuse"]=query(con,"""
+          SELECT COUNT(*) AS rows, COUNT(DISTINCT truck_id) AS truck_ids,
+                 COUNT(*) - COUNT(DISTINCT truck_id) AS extra_vehicle_versions,
+                 COUNT(*) FILTER (WHERE truck_id IS NULL) AS null_truck_ids
+          FROM dds.Dim_Vehicle
+        """)[0]
         result["fuel_mismatch"]["by_purchase_month"]=query(con,"""
           SELECT d.year,d.month,COUNT(*) AS mismatch_rows,
                  COUNT(DISTINCT f.trip_id) AS trips,
