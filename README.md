@@ -107,6 +107,24 @@ streamlit run app.py
 
 Mở địa chỉ localhost mà Streamlit hiển thị trong terminal. Để triển khai trên Streamlit Community Cloud, chọn repository này, nhánh `main`, file khởi chạy `app.py`. Website hiện tại: **https://fleet-bi-dashboard.streamlit.app/**.
 
+## Đối soát chất lượng dữ liệu triển khai
+
+Kết quả kiểm tra có thể tái lập bằng:
+
+```bash
+python scripts/audit_data_quality.py
+```
+
+Bản tổng hợp máy đọc được: [audit/data_quality_report.json](audit/data_quality_report.json). GitHub Actions chạy bộ kiểm tra trên **cơ sở dữ liệu DuckDB triển khai**, không thay thế kiểm toán toàn bộ dữ liệu gốc từ upstream ETL.
+
+Kết quả ghi nhận:
+- 8 bảng DDS đúng số lượng kỳ vọng; 85.410 chuyến, 77.959 chuyến hợp lệ, 51.970 chuyến giao trễ hợp lệ; 1.435.571 điểm GPS có mã bản tin duy nhất và liên kết đúng chuyến.
+- **204/196.442 giao dịch nhiên liệu** có `vehicle_key` khác xe gắn với `trip_id`, tương ứng **97.440,92 USD**; đây là ngoại lệ **chưa được giải quyết ở nguồn**. Ứng dụng vẫn bảo toàn chúng trong tổng chi phí chính thức và gắn nhãn cần kiểm tra, không tự chuyển xe hoặc xóa chi phí.
+- Chuyến `TRIP00078810` có 3.097 điểm GPS; chỉ 4 lần thay đổi vận tốc trên 0,01 km/h giữa các điểm liên tiếp. Mức nhiên liệu giảm trung bình khoảng 0,02326 điểm phần trăm mỗi điểm. Dạng đường thẳng phản ánh chuỗi DDS lưu trữ; **chưa đủ chứng cứ** xác nhận tín hiệu thực tế hay nguồn phát sinh đã nội suy/làm trơn.
+- Sáu bản tin `IDLE_EXTENDED` của chuyến trên nằm ở 17:34–17:39 ngày 08/10/2024; nhãn không tự chứng minh toàn bộ thời gian nổ máy chờ hay nguyên nhân tiêu hao.
+
+**Phân biệt rõ:** dữ liệu đạt quy tắc toàn vẹn khóa/kiểu/miền giá trị **không đồng nghĩa** tín hiệu cảm biến đã được kiểm định độ chính xác vật lý hoặc bất thường đã được xác minh thực địa.
+
 ## 6. Kiểm thử và lưu ý bàn giao
 
 Chạy:
