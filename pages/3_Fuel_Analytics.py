@@ -41,7 +41,12 @@ if options.empty:
     st.stop()
 
 page_header(12, "Phân tích nhiên liệu",
-    "Theo dõi mức nhiên liệu, vận tốc, trạng thái động cơ và các dấu hiệu cần xác minh.")
+    "Đối chiếu tín hiệu IoT mô phỏng và các tình huống bất thường được gắn nhãn.")
+st.info(
+    "Dữ liệu cảm biến ở trang này được **sinh mô phỏng**, "
+    "với vận tốc tính từ tọa độ nội suy và nhiên liệu tiêu hao theo công thức. "
+    "Nhãn bất thường là tình huống được chủ động tạo, không phải sự cố đã xảy ra thực tế."
+)
 
 @st.cache_data(ttl=600)
 def fuel_consistency_summary():
@@ -126,8 +131,8 @@ if not alert_labels.empty:
         ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E6EEF2")
         st.altair_chart(chart_alert, use_container_width=True, theme=None)
         st.caption(
-            "Tổng hợp nhãn có sẵn trong kho GPS. Các nhãn chỉ hỗ trợ ưu tiên kiểm tra, "
-            "không tự động xác nhận thất thoát hay hỏng hóc."
+            "Tổng hợp nhãn có sẵn trong kho GPS. Các nhãn đại diện tình huống mô phỏng, "
+            "không xác nhận thất thoát hoặc hỏng hóc thực tế."
         )
 
 section("Phân tích chi tiết theo chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
@@ -185,13 +190,12 @@ if len(trace) >= 30 and speed_changes < max(5, len(trace) * 0.002):
         f"Kiểm tra cảm biến: {len(trace):,} điểm GPS nhưng chỉ có "
         f"{speed_changes:,} lần vận tốc thay đổi trên 0,01 km/h giữa hai điểm. "
         "Dạng đường gần như thẳng là đặc tính của dữ liệu này, "
-        "không phải bằng chứng phương tiện thực tế luôn chạy đều."
+        "phù hợp với phương pháp sinh dữ liệu GPS nội suy, không phải phép đo tốc độ xe thực tế."
     )
 if len(trace) >= 30 and not ordered_delta.empty and (ordered_delta <= 0).all():
     st.caption(
         "Dữ liệu nhiên liệu của chuyến không ghi nhận lần tăng mức nhiên liệu nào; "
-        "chưa thể phân biệt tín hiệu cảm biến đo thực tế với chuỗi đã làm trơn "
-        "chỉ từ cơ sở dữ liệu triển khai."
+        "theo nguồn gốc notebook 04, nhiên liệu là tín hiệu mô phỏng dựa trên công thức tiêu hao, không phải phép đo từ bình nhiên liệu thực."
     )
 if unique_minutes < len(trace):
     st.caption(
@@ -399,7 +403,7 @@ with st.container(border=False, key="chart_panel_focus_sensors"):
     st.caption(
         "Vạch cam chỉ điểm GPS đang chọn. Nhiên liệu, vận tốc và trạng thái "
         "động cơ được đối chiếu cùng thứ tự điểm đo; đây là hỗ trợ kiểm tra, "
-        "không phải kết luận tự động về nguyên nhân."
+        "không phải kết luận về sự cố vận hành thực tế."
     )
 
 # Source purchase transactions for the selected trip: cross-check evidence only.
