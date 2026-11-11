@@ -1,0 +1,270 @@
+{
+  "source": "database/fleet_analysis.duckdb",
+  "status": "Investigative observations, not changes to source",
+  "fuel_mismatch": {
+    "summary": {
+      "rows": 204,
+      "affected_trips": 108,
+      "purchase_vehicle_keys": 61,
+      "trip_vehicle_keys": 61,
+      "total_usd": 97440.91999999998,
+      "total_liters": 95893.59000000003,
+      "null_key_rows": 0
+    },
+    "by_purchase_month": [
+      {
+        "year": 2023,
+        "month": 1,
+        "mismatch_rows": 204,
+        "trips": 108,
+        "cost_usd": 97440.92
+      }
+    ],
+    "top_vehicle_pairs": [
+      {
+        "purchased_vehicle": "TRK00093",
+        "trip_vehicle": "TRK00093",
+        "mismatch_rows": 16,
+        "trips": 5,
+        "cost_usd": 7805.31
+      },
+      {
+        "purchased_vehicle": "TRK00036",
+        "trip_vehicle": "TRK00036",
+        "mismatch_rows": 10,
+        "trips": 4,
+        "cost_usd": 4255.54
+      },
+      {
+        "purchased_vehicle": "TRK00080",
+        "trip_vehicle": "TRK00080",
+        "mismatch_rows": 6,
+        "trips": 2,
+        "cost_usd": 3504.08
+      },
+      {
+        "purchased_vehicle": "TRK00112",
+        "trip_vehicle": "TRK00112",
+        "mismatch_rows": 6,
+        "trips": 3,
+        "cost_usd": 3020.99
+      },
+      {
+        "purchased_vehicle": "TRK00086",
+        "trip_vehicle": "TRK00086",
+        "mismatch_rows": 6,
+        "trips": 4,
+        "cost_usd": 2627.72
+      },
+      {
+        "purchased_vehicle": "TRK00084",
+        "trip_vehicle": "TRK00084",
+        "mismatch_rows": 6,
+        "trips": 2,
+        "cost_usd": 2599.5
+      },
+      {
+        "purchased_vehicle": "TRK00105",
+        "trip_vehicle": "TRK00105",
+        "mismatch_rows": 6,
+        "trips": 2,
+        "cost_usd": 2322.6
+      },
+      {
+        "purchased_vehicle": "TRK00074",
+        "trip_vehicle": "TRK00074",
+        "mismatch_rows": 5,
+        "trips": 3,
+        "cost_usd": 3306.82
+      },
+      {
+        "purchased_vehicle": "TRK00116",
+        "trip_vehicle": "TRK00116",
+        "mismatch_rows": 5,
+        "trips": 1,
+        "cost_usd": 2889.93
+      },
+      {
+        "purchased_vehicle": "TRK00058",
+        "trip_vehicle": "TRK00058",
+        "mismatch_rows": 5,
+        "trips": 2,
+        "cost_usd": 2678.44
+      },
+      {
+        "purchased_vehicle": "TRK00095",
+        "trip_vehicle": "TRK00095",
+        "mismatch_rows": 5,
+        "trips": 3,
+        "cost_usd": 2601.44
+      },
+      {
+        "purchased_vehicle": "TRK00040",
+        "trip_vehicle": "TRK00040",
+        "mismatch_rows": 5,
+        "trips": 1,
+        "cost_usd": 2504.77
+      },
+      {
+        "purchased_vehicle": "TRK00063",
+        "trip_vehicle": "TRK00063",
+        "mismatch_rows": 5,
+        "trips": 2,
+        "cost_usd": 2453.4
+      },
+      {
+        "purchased_vehicle": "TRK00073",
+        "trip_vehicle": "TRK00073",
+        "mismatch_rows": 5,
+        "trips": 2,
+        "cost_usd": 2400.34
+      },
+      {
+        "purchased_vehicle": "TRK00059",
+        "trip_vehicle": "TRK00059",
+        "mismatch_rows": 5,
+        "trips": 3,
+        "cost_usd": 2097.11
+      }
+    ],
+    "by_transaction_trip_match": [
+      {
+        "status": "match",
+        "transactions": 196238,
+        "trips": 76893,
+        "total_cost_usd": 95495551.12
+      },
+      {
+        "status": "mismatch",
+        "transactions": 204,
+        "trips": 108,
+        "total_cost_usd": 97440.92
+      }
+    ],
+    "overlap_with_gps_labels": {
+      "mismatched_trips": 108,
+      "with_gps": 0,
+      "with_receipt_label": 0
+    }
+  },
+  "gps_signal": {
+    "trip_distribution": {
+      "trips": 746,
+      "min_points": 381,
+      "max_points": 4136,
+      "mean_points": 1924.4,
+      "trips_speed_changes_lte4": 598,
+      "trips_speed_changes_lte10": 624,
+      "long_trips_speed_changes_lte4": 523,
+      "trips_fuel_delta_std_lt001": 566,
+      "trips_without_fuel_increase": 746,
+      "trips_with_duplicate_minute": 364,
+      "mean_speed_changes": 16.36,
+      "mean_fuel_delta_std": 0.002695
+    },
+    "selected_trip_breakdown": [
+      {
+        "n": 2,
+        "date_key": 20241007,
+        "time_key": 1549,
+        "previous_speed": 0.0,
+        "current_speed": 14.968,
+        "fuel_pct": 81.9764,
+        "engine_status": "Running",
+        "anomaly_type": "NORMAL"
+      },
+      {
+        "n": 1547,
+        "date_key": 20241008,
+        "time_key": 1734,
+        "previous_speed": 14.739,
+        "current_speed": 0.0,
+        "fuel_pct": 45.7789,
+        "engine_status": "Idling",
+        "anomaly_type": "IDLE_EXTENDED"
+      },
+      {
+        "n": 1553,
+        "date_key": 20241008,
+        "time_key": 1740,
+        "previous_speed": 0.0,
+        "current_speed": 14.791,
+        "fuel_pct": 45.7336,
+        "engine_status": "Running",
+        "anomaly_type": "NORMAL"
+      },
+      {
+        "n": 3097,
+        "date_key": 20241009,
+        "time_key": 1923,
+        "previous_speed": 14.552,
+        "current_speed": 15.63,
+        "fuel_pct": 9.978,
+        "engine_status": "Running",
+        "anomaly_type": "NORMAL"
+      }
+    ],
+    "idle_alert_intervals": [
+      {
+        "trip_id": "TRIP00006046",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2022-03-18",
+        "last_date": "2022-03-18",
+        "earliest_minute_of_day": 938,
+        "latest_minute_of_day": 943
+      },
+      {
+        "trip_id": "TRIP00028623",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2023-01-01",
+        "last_date": "2023-01-01",
+        "earliest_minute_of_day": 938,
+        "latest_minute_of_day": 943
+      },
+      {
+        "trip_id": "TRIP00036061",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2023-04-07",
+        "last_date": "2023-04-07",
+        "earliest_minute_of_day": 110,
+        "latest_minute_of_day": 115
+      },
+      {
+        "trip_id": "TRIP00054097",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2023-11-27",
+        "last_date": "2023-11-27",
+        "earliest_minute_of_day": 941,
+        "latest_minute_of_day": 946
+      },
+      {
+        "trip_id": "TRIP00069974",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2024-06-17",
+        "last_date": "2024-06-17",
+        "earliest_minute_of_day": 1387,
+        "latest_minute_of_day": 1392
+      },
+      {
+        "trip_id": "TRIP00078810",
+        "label_points": 6,
+        "distinct_time_keys": 6,
+        "first_date": "2024-10-08",
+        "last_date": "2024-10-08",
+        "earliest_minute_of_day": 1054,
+        "latest_minute_of_day": 1059
+      }
+    ]
+  },
+  "limitations": [
+    "Cannot determine whether mismatch vehicles are deliberate anomaly injection, erroneous purchase records or ETL mapping without source transactions and ETL notebooks.",
+    "A near-linear sensor series does not prove that the physical sensor output was generated by interpolation; upstream provenance is required.",
+    "The per-minute timestamp resolution prevents exact stop duration and event chronology within each minute.",
+    "Do not automatically reassign purchases, delete rows, smooth signals or relabel anomalies."
+  ]
+}
