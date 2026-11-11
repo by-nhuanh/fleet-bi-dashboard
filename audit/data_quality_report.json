@@ -49,7 +49,7 @@
     "gps_relationships": true,
     "gps_unique_ids": true,
     "fuel_relationships": true,
-    "fuel_vehicle_consistency": false
+    "fuel_vehicle_consistency": true
   },
   "gps": {
     "integrity": {
@@ -130,6 +130,10 @@
       "mismatch_rows": 204,
       "mismatch_cost_usd": 97440.91999999998,
       "unmatched_trip_rows": 0
+    },
+    "truck_id_reconciliation": {
+      "different_truck_ids": 0,
+      "different_vehicle_version_keys": 204
     }
   },
   "overview": {
@@ -177,7 +181,7 @@
   "notes": [
     "Repeated GPS values are valid database values but cannot by themselves prove physical sensor accuracy.",
     "Datetime resolution is one minute; consecutive messages in the same minute must not be interpreted as one minute apart.",
-    "Fuel purchase rows with vehicle_key inconsistent with Fact_Trips must be explicitly flagged for review, not silently discarded.",
+    "Fuel purchase vehicle_key differences must be compared by Dim_Vehicle.truck_id before classifying a business vehicle mismatch.",
     "GPS labels are observations, not confirmed operational incidents.",
     "No synthetic signal smoothing, interpolation or automatic label correction is performed."
   ]
