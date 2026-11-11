@@ -1,0 +1,36 @@
+name: Audit deployed DDS quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/audit_data_quality.py"
+      - ".github/workflows/audit-data.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install DuckDB
+        run: pip install "duckdb>=1.1,<2"
+      - name: Analyze deployed DDS
+        run: python scripts/audit_data_quality.py
+      - name: Publish reproducible aggregate audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audit/data_quality_report.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish latest DDS data quality audit"
+            git push
+          fi
