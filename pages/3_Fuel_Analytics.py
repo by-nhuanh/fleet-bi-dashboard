@@ -43,6 +43,25 @@ if options.empty:
 page_header(12, "Phân tích nhiên liệu",
     "Theo dõi mức nhiên liệu, vận tốc, trạng thái động cơ và các dấu hiệu cần xác minh.")
 
+@st.cache_data(ttl=600)
+def fuel_consistency_summary():
+    return con.execute("""
+        SELECT COUNT(*) FILTER (WHERE f.vehicle_key <> t.vehicle_key) AS mismatch_count,
+               COALESCE(SUM(CASE WHEN f.vehicle_key <> t.vehicle_key
+                 THEN f.total_cost_usd ELSE 0 END),0) AS mismatch_cost
+        FROM dds.Fact_Fuel_Purchases f
+        JOIN dds.Fact_Trips t ON f.trip_id = t.trip_id
+    """).fetchone()
+
+mismatch_count,mismatch_cost=fuel_consistency_summary()
+if mismatch_count:
+    st.warning(
+        f"Đối soát DDS: {mismatch_count:,} giao dịch mua nhiên liệu có mã xe "
+        f"khác mã xe của chuyến liên kết (tổng chi phí {mismatch_cost:,.2f} USD). "
+        "Những giao dịch này vẫn được bảo toàn trong KPI chi phí, nhưng phải "
+        "xác minh trước khi quy trách nhiệm cho phương tiện."
+    )
+
 section("Tổng quan dữ liệu cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
 metric_grid([
     metric_card("Chuyến có dữ liệu GPS", f"{len(options):,}",
@@ -148,6 +167,29 @@ trace["event_minute"]=pd.to_datetime(
     errors="coerce"
 )
 trace["point_index"]=range(1,len(trace)+1)
+# Cross-check the signal characteristics without silently smoothing raw measurements.
+ordered_delta = trace["fuel_level_pct"].diff().dropna()
+speed_changes = int((trace["speed_kmh"].diff().abs()>0.01).sum())
+unique_minutes = int(trace[["full_date","hour_24","minute"]].drop_duplicates().shape[0])
+if len(trace) >= 30 and speed_changes < max(5, len(trace) * 0.002):
+    st.info(
+        f"Kiểm tra cảm biến: {len(trace):,} điểm GPS nhưng chỉ có "
+        f"{speed_changes:,} lần vận tốc thay đổi trên 0,01 km/h giữa hai điểm. "
+        "Dạng đường gần như thẳng là đặc tính của dữ liệu này, "
+        "không phải bằng chứng phương tiện thực tế luôn chạy đều."
+    )
+if len(trace) >= 30 and not ordered_delta.empty and (ordered_delta <= 0).all():
+    st.caption(
+        "Dữ liệu nhiên liệu của chuyến không ghi nhận lần tăng mức nhiên liệu nào; "
+        "chưa thể phân biệt tín hiệu cảm biến đo thực tế với chuỗi đã làm trơn "
+        "chỉ từ cơ sở dữ liệu triển khai."
+    )
+if unique_minutes < len(trace):
+    st.caption(
+        f"Trong {len(trace):,} điểm có {unique_minutes:,} mốc phút phân biệt; "
+        "nhiều điểm cùng phút không được coi là cách nhau một phút."
+    )
+
 flagged=trace[
     trace["anomaly_type"].notna()
     & ~trace["anomaly_type"].isin(["","NORMAL","NONE"])
@@ -244,6 +286,24 @@ window = trace.loc[
     )
 ].copy()
 selected_row = trace.loc[trace["point_index"].eq(selected_point)].iloc[0]
+# Focused readout separates measured values from inferred duration.
+focus_fuel = window["fuel_level_pct"].dropna()
+focus_speed = window["speed_kmh"].dropna()
+if not focus_fuel.empty and not focus_speed.empty:
+    insight_cols = st.columns(3, gap="large")
+    insight_cols[0].metric(
+        "Chênh lệch nhiên liệu trong cửa sổ",
+        f"{focus_fuel.iloc[-1]-focus_fuel.iloc[0]:+.3f} điểm %"
+    )
+    insight_cols[1].metric(
+        "Vận tốc thấp nhất",
+        f"{focus_speed.min():.2f} km/h"
+    )
+    insight_cols[2].metric(
+        "Điểm có động cơ Idling",
+        f"{int(window['engine_status'].eq('Idling').sum()):,}"
+    )
+
 st.markdown(
     f'<div class="insight-strip"><strong>Điểm GPS {selected_point:,}</strong> · '
     f'Nhãn: {selected_row["anomaly_type"] if pd.notna(selected_row["anomaly_type"]) else "Không có nhãn"}'
@@ -338,10 +398,15 @@ with st.container(border=False, key="chart_panel_focus_sensors"):
 def trip_fuel_purchases(trip_id):
     return con.execute("""
         SELECT f.fuel_purchase_id, d.full_date AS purchase_date,
-               f.liters_purchased, f.total_cost_usd, v.truck_id AS purchase_vehicle
+               f.liters_purchased, f.total_cost_usd, v.truck_id AS purchase_vehicle,
+               trip_vehicle.truck_id AS trip_vehicle,
+               CASE WHEN f.vehicle_key = t.vehicle_key THEN 'Khớp xe'
+                    ELSE 'Lệch xe - cần xác minh' END AS vehicle_reconciliation
         FROM dds.Fact_Fuel_Purchases f
+        JOIN dds.Fact_Trips t ON f.trip_id=t.trip_id
         LEFT JOIN dds.Dim_Date d ON f.date_key=d.date_key
         LEFT JOIN dds.Dim_Vehicle v ON f.vehicle_key=v.vehicle_key
+        LEFT JOIN dds.Dim_Vehicle trip_vehicle ON t.vehicle_key=trip_vehicle.vehicle_key
         WHERE f.trip_id=?
         ORDER BY d.full_date,f.fuel_purchase_id
     """,[trip_id]).df()
@@ -360,8 +425,16 @@ with st.container(border=False, key="chart_panel_fuel_purchases"):
             "purchase_date":"Ngày mua",
             "liters_purchased":"Lượng mua (L)",
             "total_cost_usd":"Chi phí (USD)",
-            "purchase_vehicle":"Phương tiện ghi nhận",
+            "purchase_vehicle":"Xe trên giao dịch",
+            "trip_vehicle":"Xe của chuyến",
+            "vehicle_reconciliation":"Đối soát phương tiện",
         }),hide_index=True,use_container_width=True)
+        flagged_purchase_count=int(purchases["vehicle_reconciliation"].ne("Khớp xe").sum())
+        if flagged_purchase_count:
+            st.warning(
+                f"Chuyến này có {flagged_purchase_count} giao dịch lệch phương tiện. "
+                "Cần đối chiếu chứng từ và mã xe trước khi dùng làm bằng chứng."
+            )
         st.caption(
             "Các giao dịch được liên kết bằng trip_id. Lượng nhiên liệu mua không đồng nhất "
             "với lượng nhiên liệu tiêu hao từ cảm biến; cần kiểm tra xe và thời điểm mua "
