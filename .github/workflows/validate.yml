@@ -1,4 +1,4 @@
-name: Validate Fleet BI Overview
+name: Validate Fleet BI Dashboard
 
 on:
   push:
@@ -16,6 +16,6 @@ jobs:
       - name: Install dashboard requirements
         run: pip install -r requirements.txt
       - name: Check Python syntax
-        run: python -m py_compile app.py tests/test_overview.py
+        run: python -m compileall -q app.py ui.py pages tests scripts
       - name: Verify DDS relationships and KPI calculations
         run: python -m unittest discover -s tests -v
