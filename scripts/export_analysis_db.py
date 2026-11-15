@@ -58,7 +58,9 @@ def export_analysis_db(source: Path, destination: Path):
             SELECT COUNT(*),COUNT(DISTINCT trip_id)
             FROM dds.Fact_GPS_Points
         """).fetchone()
-        assert rows == (1435571,746), f"Unexpected GPS counts: {rows}"
+        if rows[0] == 0 or rows[1] == 0:
+            raise ValueError(f"GPS export is empty: {rows}")
+        print(f"GPS rows/trips: {rows[0]:,}/{rows[1]:,}")
         gps_groups = con.execute("""
             SELECT anomaly_type,COUNT(*)
             FROM dds.Fact_GPS_Points

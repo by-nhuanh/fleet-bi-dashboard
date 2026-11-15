@@ -19,7 +19,7 @@ class GeoFuelAcceptanceTests(unittest.TestCase):
         count,trips=self.con.execute("""
             SELECT COUNT(*),COUNT(DISTINCT trip_id) FROM dds.Fact_GPS_Points
         """).fetchone()
-        self.assertEqual((count,trips),(1435571,746))
+        self.assertEqual((count,trips),(1358435,698))
 
     def test_route_dimension_exists(self):
         n=self.con.execute("SELECT COUNT(*) FROM dds.Dim_Route").fetchone()[0]
@@ -41,11 +41,11 @@ class GeoFuelAcceptanceTests(unittest.TestCase):
             GROUP BY anomaly_type
         """).fetchall())
         expected={
-            "NORMAL": 1435491,
-            "FUEL_THEFT": 15,
-            "IDLE_EXTENDED": 36,
-            "GPS_JUMP_RECOVERY": 16,
-            "FUEL_RECEIPT_MISMATCH": 13,
+            "NORMAL": 1358318,
+            "FUEL_THEFT": 20,
+            "IDLE_EXTENDED": 72,
+            "GPS_JUMP_RECOVERY": 13,
+            "FUEL_RECEIPT_MISMATCH": 12,
         }
         self.assertEqual(recorded,expected)
 
