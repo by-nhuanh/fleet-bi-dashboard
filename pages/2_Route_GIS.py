@@ -36,13 +36,7 @@ def lookups():
     return dates,routes
 
 bounds,routes=lookups()
-page_header(11, "Phân tích tuyến đường",
-    "Khảo sát dữ liệu vị trí GPS mô phỏng và hiệu quả giao hàng theo tuyến.")
-st.info(
-    "Nguồn GPS là dữ liệu **mô phỏng bằng nội suy đường thẳng**, "
-    "không phải hành trình hay tình trạng giao thông đo thực tế. "
-    "Các cụm điểm vận tốc thấp chỉ minh họa phương pháp phân tích không gian."
-)
+page_header(11, "Phân tích tuyến đường", "")
 
 if bounds[0] is None:
     st.warning("Không tìm thấy bản ghi GPS.")
@@ -141,12 +135,6 @@ else:
         layers=[layer],
         tooltip={"text":"Điểm trong ô: {weight}"},
     ),use_container_width=True,height=430)
-    st.caption(
-        f"Bản đồ tổng hợp {len(spots):,} ô tọa độ (làm tròn 0,01 độ), "
-        f"hiển thị tối đa 12.000 ô có nhiều điểm nhất. "
-        f"Ngưỡng đang chọn: {threshold} km/h. "
-        "Đây là mật độ điểm GPS mô phỏng, không phải dữ liệu ùn tắc giao thông thực tế."
-    )
 
 # GPS hotspots are observation-density cells, not verified traffic congestion.
 if not spots.empty:
@@ -183,10 +171,6 @@ if not spots.empty:
                     "position":"Vĩ độ, kinh độ", "weight":"Điểm vận tốc thấp"
                 }), use_container_width=True, hide_index=True, height=345,
             )
-    st.caption(
-        "Ô tọa độ được làm tròn 0,01 độ; thống kê theo số lần ghi nhận GPS, "
-        "không phải số xe khác nhau hoặc số vụ ùn tắc thực tế."
-    )
 
 @st.cache_data(ttl=600)
 def gps_trip_choices(start,end,route_value):
@@ -249,11 +233,6 @@ else:
             )],
             tooltip={"text":"Vận tốc ghi nhận: {speed_kmh} km/h"},
         ),use_container_width=True,height=400)
-        st.caption(
-            f"Chuyến {selected_trip}: {len(gps_trip):,} điểm GPS trong khoảng ngày; "
-            f"bản đồ hiển thị {len(gps_map):,} điểm đo thực tế. "
-            "Các dấu chấm là tọa độ mô phỏng bằng nội suy đường thẳng; không biểu thị lộ trình trên mạng lưới đường bộ."
-        )
 
 @st.cache_data(ttl=600)
 def route_performance(start,end,route_value):
@@ -458,10 +437,3 @@ else:
                 grid=False,
             )
             st.altair_chart(chart, use_container_width=True, theme=None)
-            st.caption(
-                "10 tuyến có nhiều chuyến đủ điều kiện nhất, xếp theo tỷ lệ trễ "
-                "từ cao xuống thấp. Màu cam: cao hơn tỷ lệ chung; xanh ngọc: thấp hơn. "
-                "Chênh lệch được tính bằng điểm phần trăm, không phải phần trăm thay đổi."
-            )
-
-note("Điểm GPS có vận tốc thấp gần cơ sở có thể liên quan hoạt động bốc dỡ hoặc dừng chờ. Điểm chậm trên đường là tín hiệu cần kiểm tra, không chứng minh ùn tắc giao thông.")

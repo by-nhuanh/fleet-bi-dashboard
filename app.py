@@ -106,7 +106,6 @@ with st.container(border=False, key="filter_bar"):
                 placeholder="Tất cả điểm đến",
             )
 
-    st.caption("Quy ước bộ lọc: cơ sở xuất phát được dùng để phân nhóm như chi nhánh vận hành; dữ liệu nguồn chưa có trường chi nhánh độc lập.")
 
 if len(date_range) != 2:
     st.info("Chọn đủ ngày bắt đầu và ngày kết thúc để xem Dashboard.")
@@ -340,15 +339,6 @@ with b:
                 stroke=None
             ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E7EEF4")
             st.altair_chart(chart, use_container_width=True, theme=None)
-
-st.markdown(
-    '<div class="insight-strip"><strong>Góc nhìn điều hành:</strong> '
-    'So sánh cơ sở xuất phát và phương tiện giúp nhận diện nơi tập trung nhiều chuyến; '
-    'số chuyến cao không tự động đồng nghĩa với hiệu suất tốt hơn.</div>',
-    unsafe_allow_html=True,
-)
-
-note("Lọc theo ngày bắt đầu chuyến; giao trễ khi chuyến đủ điều kiện và delay_minutes > 0. Chi phí mua nhiên liệu được gắn theo chuyến liên kết, không theo ngày giao dịch mua.")
 
 with st.expander("Bảng dữ liệu đối soát theo tháng"):
     display = monthly[[

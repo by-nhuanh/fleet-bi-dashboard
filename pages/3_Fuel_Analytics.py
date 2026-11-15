@@ -40,13 +40,7 @@ if options.empty:
     st.warning("Chưa có chuyến có dữ liệu GPS.")
     st.stop()
 
-page_header(12, "Phân tích nhiên liệu",
-    "Đối chiếu tín hiệu IoT mô phỏng và các tình huống bất thường được gắn nhãn.")
-st.info(
-    "Dữ liệu cảm biến ở trang này được **sinh mô phỏng**, "
-    "với vận tốc tính từ tọa độ nội suy và nhiên liệu tiêu hao theo công thức. "
-    "Nhãn bất thường là tình huống được chủ động tạo, không phải sự cố đã xảy ra thực tế."
-)
+page_header(12, "Phân tích nhiên liệu", "")
 
 @st.cache_data(ttl=600)
 def fuel_consistency_summary():
@@ -63,18 +57,6 @@ def fuel_consistency_summary():
     """).fetchone()
 
 surrogate_differences,actual_vehicle_differences=fuel_consistency_summary()
-if actual_vehicle_differences:
-    st.warning(
-        f"Đối soát phương tiện: {actual_vehicle_differences:,} giao dịch có "
-        "mã xe truck_id khác với chuyến liên kết, cần xác minh nguồn."
-    )
-elif surrogate_differences:
-    st.caption(
-        f"Đối soát phương tiện: {surrogate_differences:,} giao dịch có "
-        "vehicle_key khác giữa giao dịch và chuyến, nhưng truck_id vẫn khớp. "
-        "Đây là khác khóa phiên bản trong chiều phương tiện, "
-        "không được kết luận sai xe."
-    )
 
 section("Tổng quan dữ liệu cảm biến", "CHỈ SỐ TỪ CÁC CHUYẾN CÓ GPS")
 metric_grid([
@@ -130,10 +112,6 @@ if not alert_labels.empty:
             stroke=None
         ).configure_axis(labelColor="#172D43", titleColor="#172D43", gridColor="#E6EEF2")
         st.altair_chart(chart_alert, use_container_width=True, theme=None)
-        st.caption(
-            "Tổng hợp nhãn có sẵn trong kho GPS. Các nhãn đại diện tình huống mô phỏng, "
-            "không xác nhận thất thoát hoặc hỏng hóc thực tế."
-        )
 
 section("Phân tích chi tiết theo chuyến", "CHỌN CHUYẾN VÀ ĐIỂM HIỂN THỊ")
 trip_list=options["trip_id"].tolist()
@@ -185,23 +163,6 @@ trace["point_index"]=range(1,len(trace)+1)
 ordered_delta = trace["fuel_level_pct"].diff().dropna()
 speed_changes = int((trace["speed_kmh"].diff().abs()>0.01).sum())
 unique_minutes = int(trace[["full_date","hour_24","minute"]].drop_duplicates().shape[0])
-if len(trace) >= 30 and speed_changes < max(5, len(trace) * 0.002):
-    st.info(
-        f"Kiểm tra cảm biến: {len(trace):,} điểm GPS nhưng chỉ có "
-        f"{speed_changes:,} lần vận tốc thay đổi trên 0,01 km/h giữa hai điểm. "
-        "Dạng đường gần như thẳng là đặc tính của dữ liệu này, "
-        "phù hợp với phương pháp sinh dữ liệu GPS nội suy, không phải phép đo tốc độ xe thực tế."
-    )
-if len(trace) >= 30 and not ordered_delta.empty and (ordered_delta <= 0).all():
-    st.caption(
-        "Dữ liệu nhiên liệu của chuyến không ghi nhận lần tăng mức nhiên liệu nào; "
-        "theo nguồn gốc notebook 04, nhiên liệu là tín hiệu mô phỏng dựa trên công thức tiêu hao, không phải phép đo từ bình nhiên liệu thực."
-    )
-if unique_minutes < len(trace):
-    st.caption(
-        f"Trong {len(trace):,} điểm có {unique_minutes:,} mốc phút phân biệt; "
-        "nhiều điểm cùng phút không được coi là cách nhau một phút."
-    )
 
 flagged=trace[
     trace["anomaly_type"].notna()
@@ -212,14 +173,8 @@ if len(trace)>point_limit:
     step=max(1,(len(trace)+point_limit-1)//point_limit)
     display_trace=pd.concat([trace.iloc[::step],flagged],ignore_index=True)
     display_trace=display_trace.drop_duplicates(subset=["point_index"]).sort_values("point_index")
-    st.caption(f"Chuỗi có {len(trace):,} điểm; biểu đồ hiển thị {len(display_trace):,} "
-               "điểm thực (lấy mẫu theo thứ tự và luôn giữ điểm có nhãn).")
 
 section("Khảo sát tín hiệu theo chuyến")
-st.caption(
-    "Các phép đo được sắp theo ngày, phút và ID bản tin. Trục ngang là thứ tự "
-    "bản ghi GPS để giữ riêng những phép đo cùng phút."
-)
 
 def chart_style(chart):
     return chart.configure(background="#FFFFFF").configure_view(
@@ -228,7 +183,6 @@ def chart_style(chart):
         labelColor="#172D43", titleColor="#172D43",
         gridColor="#E8EFF4", labelFontSize=11
     )
-
 def series_line(data, field, color, title, height=155):
     return alt.Chart(data).mark_line(
         color=color, strokeWidth=2.1
@@ -264,10 +218,6 @@ with st.container(border=False, key="chart_panel_trip_overview"):
                 display_trace, "speed_kmh", "#337FB6", "Vận tốc (km/h)", 170
             )), use_container_width=True, theme=None,
         )
-    st.caption(
-        f"Toàn chuyến có {len(trace):,} điểm GPS; đang vẽ {len(display_trace):,} "
-        "điểm thực. Cần phóng vào điểm có nhãn để đánh giá sự thay đổi ngắn hạn."
-    )
 
 section("Phóng to vùng cần xác minh")
 with st.container(border=False, key="filter_bar_focus"):
@@ -400,11 +350,6 @@ with st.container(border=False, key="chart_panel_focus_sensors"):
     st.altair_chart(
         chart_style(comparison), use_container_width=True, theme=None,
     )
-    st.caption(
-        "Vạch cam chỉ điểm GPS đang chọn. Nhiên liệu, vận tốc và trạng thái "
-        "động cơ được đối chiếu cùng thứ tự điểm đo; đây là hỗ trợ kiểm tra, "
-        "không phải kết luận về sự cố vận hành thực tế."
-    )
 
 # Source purchase transactions for the selected trip: cross-check evidence only.
 @st.cache_data(ttl=600)
@@ -462,11 +407,6 @@ with st.container(border=False, key="chart_panel_fuel_purchases"):
                 "Có giao dịch dùng khóa phiên bản Dim_Vehicle khác với chuyến, "
                 "nhưng mã xe truck_id vẫn trùng khớp."
             )
-        st.caption(
-            "Các giao dịch được liên kết bằng trip_id. Lượng nhiên liệu mua không đồng nhất "
-            "với lượng nhiên liệu tiêu hao từ cảm biến; cần kiểm tra xe và thời điểm mua "
-            "trước khi đánh giá chênh lệch."
-        )
 
 @st.cache_data(ttl=600)
 def get_flagged_vehicles():
@@ -486,8 +426,6 @@ def get_flagged_vehicles():
 
 flagged_vehicles=get_flagged_vehicles()
 section("Danh sách phương tiện cần xác minh", "CẢNH BÁO CHƯA PHẢI KẾT LUẬN")
-st.caption("Danh sách tổng hợp toàn đội xe trong dữ liệu GPS, không phụ thuộc chuyến đang chọn. "
-           "Nhãn FUEL_THEFT chỉ là dấu hiệu cần kiểm tra, chưa chứng minh hành vi gian lận.")
 if flagged_vehicles.empty:
     st.info("Không tìm thấy xe có nhãn nhiên liệu hoặc nổ máy chờ.")
 else:
@@ -512,19 +450,3 @@ else:
             "fuel_level_pct":"Nhiên liệu (%)","fuel_liters_remaining":"Nhiên liệu (L)"
         }),use_container_width=True,hide_index=True
     )
-
-section("Hướng dẫn phân tích nguyên nhân", "HƯỚNG DẪN XÁC MINH")
-with st.container(border=False, key="chart_panel_decision"):
-    st.markdown("""
-**Bước 1 – Đối chiếu tín hiệu:** Kiểm tra thứ tự điểm đo, vận tốc, trạng thái động cơ, chênh lệch nhiên liệu và nhãn gốc.
-
-**Bước 2 – Phân biệt các giả thuyết:**
-
-- Xe đứng yên + động cơ tắt + mức nhiên liệu giảm nhanh: **nghi vấn thất thoát nhiên liệu**, cần kiểm tra thêm.
-- Xe đứng yên + động cơ bật + nhiên liệu giảm theo thời gian: **nghi vấn tiêu hao do nổ máy chờ**.
-- Xe di chuyển + nhiên liệu giảm bất thường: **cần kiểm tra tình trạng kỹ thuật và chất lượng phép đo**.
-
-**Bước 3 – Xác minh:** So sánh với giao dịch mua nhiên liệu, lịch sử chuyến, dữ liệu đo lặp và kiểm tra hiện trường. Các quy tắc này là *logic diễn giải*, không tự sinh kết luận gian lận từ một ngưỡng chưa được phê duyệt.
-""")
-
-note("Giới hạn: Chỉ các chuyến có GPS mới được chẩn đoán. Nhãn FUEL_THEFT hay IDLE_EXTENDED là nhãn được ghi nhận, không khẳng định gian lận hay hỏng hóc. Chưa có ngưỡng định lượng đã duyệt để tự động suy ra nguyên nhân.")

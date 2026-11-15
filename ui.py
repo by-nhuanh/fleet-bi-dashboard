@@ -201,13 +201,13 @@ def setup(page):
                         st.switch_page(path)
 
 
-def page_header(number, title, subtitle, badge="DỮ LIỆU LỊCH SỬ"):
+def page_header(number, title, subtitle, badge=""):
     st.markdown(
         '<div class="dashboard-header"><div class="dashboard-title-area">'
         '<div class="dashboard-eyebrow">PHÂN TÍCH VẬN HÀNH ĐỘI XE</div>'
         '<div class="dashboard-title">' + html.escape(title) + '</div>'
-        '<div class="dashboard-description">' + html.escape(subtitle) + '</div></div>'
-        '<div class="dashboard-chip">' + html.escape(badge) + '</div></div>',
+        '<div class="dashboard-description">' + html.escape(subtitle) + '</div></div>' +
+        ('<div class="dashboard-chip">' + html.escape(badge) + '</div>' if badge else '') + '</div>',
         unsafe_allow_html=True,
     )
 
