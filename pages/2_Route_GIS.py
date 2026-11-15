@@ -175,7 +175,7 @@ if not spots.empty:
 @st.cache_data(ttl=600)
 def gps_trip_choices(start,end,route_value):
     sql="""
-        SELECT DISTINCT g.trip_id
+        SELECT DISTINCT g.trip_id AS trip_id
         FROM dds.Fact_GPS_Points g
         JOIN dds.Dim_Date d ON g.date_key=d.date_key
         JOIN dds.Fact_Trips t ON g.trip_id=t.trip_id
@@ -187,7 +187,8 @@ def gps_trip_choices(start,end,route_value):
         sql+=" AND r.route_id=?"
         values.append(route_value)
     sql+=" ORDER BY g.trip_id LIMIT 1000"
-    return con.execute(sql,values).df()["trip_id"].tolist()
+    result = con.execute(sql,values).df()
+    return result.iloc[:, 0].tolist() if not result.empty else []
 
 section("Phân tích hành trình theo chuyến", "ĐIỂM GPS QUAN SÁT")
 available_trips=gps_trip_choices(dates[0],dates[1],route)

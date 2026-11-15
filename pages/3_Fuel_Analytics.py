@@ -148,7 +148,7 @@ def get_trace(trip_id):
     """,[trip_id]).df()
 
 trace=get_trace(trip)
-if trace.empty:
+if trace is None or trace.empty:
     st.info("Chuyến được chọn không có bản ghi cảm biến.")
     st.stop()
 
