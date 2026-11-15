@@ -178,12 +178,18 @@ total = int(kpi["total_trips"])
 eligible = int(kpi["eligible_trips"])
 late = int(kpi["late_trips"])
 fuel = float(kpi["fuel_cost_usd"])
+on_time = eligible - late
+otp_pct = 100 * on_time / eligible if eligible else None
 late_pct = 100 * late / eligible if eligible else None
 
 section("Chỉ số vận hành", "TỔNG HỢP THEO BỘ LỌC")
 metric_grid([
     metric_card("Tổng số chuyến", f"{total:,}",
                 "Số chuyến thuộc phạm vi đang chọn", "truck", render=False),
+    metric_card("OTP",
+                f"{otp_pct:.2f}%" if otp_pct is not None else "N/A",
+                f"{on_time:,} chuyến đúng hạn / {eligible:,} chuyến đủ điều kiện",
+                "check", render=False),
     metric_card("Tỷ lệ giao hàng trễ",
                 f"{late_pct:.2f}%" if late_pct is not None else "N/A",
                 f"{late:,} chuyến trễ / {eligible:,} chuyến đủ điều kiện",
@@ -191,8 +197,8 @@ metric_grid([
     metric_card("Chi phí mua nhiên liệu", f"${fuel:,.2f}",
                 "USD · Theo chuyến liên kết", "fuel", render=False),
     metric_card("Chuyến đủ điều kiện đánh giá", f"{eligible:,}",
-                "Số chuyến được tính trong tỷ lệ giao trễ", "check", render=False),
-], columns=4)
+                "Số chuyến được tính trong tỷ lệ giao trễ", "clock", render=False),
+], columns=5)
 
 if monthly.empty:
     st.warning("Không có chuyến nào phù hợp bộ lọc hiện tại.")
